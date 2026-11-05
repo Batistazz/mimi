@@ -31,11 +31,12 @@
   .ano-t{opacity:0;transform:translateY(12px);transition:opacity .7s ease,transform .7s ease}
   .ano-t.visivel{opacity:1;transform:translateY(0)}
   .ano-t{position:relative;text-align:center;font-family:Fraunces,serif;font-weight:300;font-size:44px;line-height:1;margin:0 0 28px;letter-spacing:-.02em}
-  .ano-t span{background:var(--creme);padding:0 16px;box-decoration-break:clone;-webkit-box-decoration-break:clone}
+  .ano-t span{padding:0 16px}
   .item{position:relative;width:var(--largura-item,calc(50% - var(--folga)));padding-bottom:56px;overflow-wrap:anywhere}
   .item[data-lado="-1"]{left:calc(50% - var(--folga));transform:translateX(calc(-100% + var(--desvio,0px)));text-align:right}
   .item[data-lado="1"]{left:calc(50% + var(--folga));transform:translateX(var(--desvio,0px));text-align:left}
-  .item[data-lado="-1"] .data{justify-content:flex-end}
+  .item[data-lado="-1"] .data{justify-content:flex-end;padding-right:10px}
+  .item[data-lado="1"] .data{padding-left:10px}
   .item[data-lado="-1"] .pol{margin-left:auto}
   .item[data-lado] .pol{transform:rotate(var(--inclinacao))}
   .item[data-lado="-1"]{--inclinacao:2deg}
@@ -128,7 +129,8 @@
 const LARGURA_MIN = 3.4;
 const LARGURA_MAX = 6.8;
 const AMPLITUDE_DESVIO = 22;
-const FOLGA_ITEM = 14;
+// Envelope conservador da curva inteira + meia espessura + folga visível.
+const FOLGA_ITEM = AMPLITUDE_DESVIO + LARGURA_MAX/2 + 17;
 const RESPIRO_BORDA = 8;
 const RAMO_COMPRIMENTO = 14;
 const INERCIA = 0.10;
@@ -172,7 +174,7 @@ const ALTURA_LEQUE = 150;
     const i = Math.floor(t), f = t - i;
     return misturar(aleatorio(i + sal), aleatorio(i + 1 + sal), f*f*f*(f*(f*6-15)+10)) * 2 - 1;
   }
-  let altura = 1, fim = 1, topo = 0, marcas = [], caminhos = [];
+  let altura = 1, fim = 1, topo = 0, marcas = [], caminhos = [], pausasAnos = [];
   let ponta = 0, alvo = 0, maximo = 0, seco = 0, umidade = 0;
   let geometriaSuja = true, raf = 0, anterior = 0;
   const PASSO = .7, MARGEM = 0;
@@ -209,18 +211,37 @@ const ALTURA_LEQUE = 150;
     fim = Math.max(1, altura - ALTURA_LEQUE);
     LARGURA_CANVAS = retangulo.width;
     linha.style.setProperty('--folga', `${FOLGA_ITEM}px`);
-    // Medição em ordem: a largura de um item pode mudar a altura dos seguintes.
+    // xEm permanece dentro de centro ± AMPLITUDE_DESVIO em qualquer altura.
+    // Inclui também a projeção real das fotos e fitas após a rotação.
+    itens.forEach(item => {
+      const lado = Number(item.dataset.lado || 0);
+      if (!lado) return;
+      const larguraBase = LARGURA_CANVAS/2-FOLGA_ITEM-RESPIRO_BORDA;
+      let projecao = 0;
+      for (let tentativa = 0; tentativa < 8; tentativa++) {
+        item.style.setProperty('--desvio', `${lado*projecao}px`);
+        item.style.setProperty('--largura-item', `${larguraBase-projecao}px`);
+        const caixa = item.getBoundingClientRect();
+        const excesso = Math.max(0, ...[...item.querySelectorAll('.pol, .fita')].map(el => {
+          const r = el.getBoundingClientRect();
+          return lado < 0 ? r.right-caixa.right : caixa.left-r.left;
+        }));
+        if (excesso <= projecao) break;
+        // Margem extra para arredondamento de layout e sombra da foto.
+        projecao = excesso+4;
+      }
+    });
+    altura = linha.offsetHeight;
+    fim = Math.max(1, altura - ALTURA_LEQUE);
     marcas = itens.map(item => {
       const data = item.querySelector('.data');
       const y = data.getBoundingClientRect().top + scrollY - topo + 9.5;
       const lado = Number(item.dataset.lado || 0);
-      const x = xEm(y);
-      if (lado) {
-        const disponivel = lado < 0 ? x : LARGURA_CANVAS-x;
-        item.style.setProperty('--desvio', `${x-LARGURA_CANVAS/2}px`);
-        item.style.setProperty('--largura-item', `${Math.min(LARGURA_CANVAS*.47, disponivel-FOLGA_ITEM-RESPIRO_BORDA)}px`);
-      }
       return {y, lado};
+    });
+    pausasAnos = [...linha.querySelectorAll('.ano-t')].map(ano => {
+      // offsetTop ignora a translação transitória da animação de entrada.
+      return {de:ano.offsetTop-8, ate:ano.offsetTop+ano.offsetHeight+8};
     });
     altura = linha.offsetHeight;
     fim = Math.max(1, altura - ALTURA_LEQUE);
@@ -246,7 +267,7 @@ const ALTURA_LEQUE = 150;
     geometriaSuja = false;
   }
   function carimbar(ctx, p, fator = 1) {
-    if (p.falha || p.largura < .04 || fator <= 0) return;
+    if (p.falha || p.largura < .04 || fator <= 0 || pausasAnos.some(pausa => p.y >= pausa.de && p.y <= pausa.ate)) return;
     ctx.globalAlpha = p.alfa;
     ctx.beginPath();
     ctx.ellipse(p.x + MARGEM + (p.textura-.5)*.14, p.y,
@@ -306,7 +327,7 @@ const ALTURA_LEQUE = 150;
     contexto.drawImage(reserva, 0, 0, LARGURA_CANVAS, altura);
     trecho(contexto, seco, ponta, true);
     marcos(contexto);
-    if (umidade > .002 && ponta > 0 && ponta < altura && !movimento.matches) {
+    if (umidade > .002 && ponta > 0 && ponta < altura && !movimento.matches && !pausasAnos.some(pausa => ponta >= pausa.de && ponta <= pausa.ate)) {
       const pontas = ponta < fim ? [xEm(ponta)] : caminhos.slice(1).map(pontos => pontos[Math.min(pontos.length-1, Math.floor((ponta-fim)/PASSO))].x);
       contexto.fillStyle = '#1C1A18';
       contexto.globalAlpha = umidade*.19;
