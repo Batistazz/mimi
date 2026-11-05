@@ -1,0 +1,312 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>Yasmim — prévia</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500&family=Fraunces:ital,opsz,wght@0,9..144,300;1,9..144,300;1,9..144,400&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+<style>
+  :root{--creme:#F4EFE6;--tinta:#1C1A18;--suave:#6F6A64;--linha:#CFC7BA;--branco:#FFFEFB;--fita:rgba(227,216,197,.85)}
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{background:var(--creme);overflow-x:hidden}
+  body{background:var(--creme);color:var(--tinta);font-family:Fraunces,Georgia,serif;
+       background-image:radial-gradient(circle at 10% 0%,#EFE7DA 0,transparent 50%),radial-gradient(circle at 100% 100%,#ECE4D6 0,transparent 45%)}
+  /* Respiro final permite que o leque inteiro alcance o ponto de leitura. */
+  main{max-width:560px;margin:0 auto;padding:40px 16px max(80px,40vh);overflow-x:hidden}
+  .novas{position:sticky;top:10px;z-index:5;display:flex;justify-content:space-between;align-items:center;gap:10px;
+         background:var(--tinta);color:var(--creme);border-radius:999px;padding:9px 10px 9px 18px;font-size:14px;font-style:italic;
+         box-shadow:0 8px 20px -10px rgba(0,0,0,.5);margin-bottom:28px}
+  .novas a{color:var(--tinta);background:var(--creme);border-radius:999px;padding:5px 12px;text-decoration:none;font-style:normal;font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.08em}
+  .abre{text-align:center;padding:20px 0 50px}
+  .abre .nome{font-family:Caveat,cursive;font-size:64px;line-height:1}
+  .abre .ano{font-family:"JetBrains Mono",monospace;font-size:12px;letter-spacing:.3em;color:var(--suave);margin:8px 0 30px}
+  .abre .f1{font-style:italic;font-size:16px;color:var(--suave);line-height:1.5}
+  .abre .f2{font-style:italic;font-size:21px;line-height:1.4;margin-top:12px}
+  .anos{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;margin-bottom:34px;scrollbar-width:none}
+  .anos a{flex:none;font-family:"JetBrains Mono",monospace;font-size:12px;color:var(--suave);text-decoration:none;border:1px solid var(--linha);border-radius:999px;padding:5px 12px}
+  .linha{position:relative;isolation:isolate;padding-left:26px;padding-bottom:160px}
+  .linha-viva{position:absolute;inset:0;width:100%;height:100%;z-index:-1;pointer-events:none;overflow:visible}
+  .linha-viva path{fill:none;stroke-width:1.15;stroke-linecap:round}
+  .linha-futuro{stroke:var(--linha);stroke-dasharray:3 7}
+  .linha-tinta{stroke:var(--tinta)}
+  .agora-halo{fill:var(--tinta);opacity:.08}
+  .agora{fill:var(--tinta)}
+  .particula{fill:var(--tinta);opacity:.25}
+  .ano-t{opacity:0;transform:translateY(12px);transition:opacity .7s ease,transform .7s ease}
+  .ano-t.visivel{opacity:1;transform:translateY(0)}
+  .ano-t{position:relative;font-family:Fraunces,serif;font-weight:300;font-size:44px;line-height:1;margin:0 0 28px;letter-spacing:-.02em}
+  .ano-t:before{content:"";position:absolute;left:-25px;top:50%;width:11px;height:1px;background:var(--linha)}
+  .item{position:relative;padding-bottom:56px}
+  .item:before{content:"";position:absolute;left:var(--ponto-x,-19px);top:9.5px;width:9px;height:9px;border-radius:50%;border:1px solid var(--tinta);background:var(--creme);transform:translate(-50%,-50%)}
+  .item.alcancado:before{background:var(--tinta)}
+  .item.pulso:before{animation:pulso-ponto .65s ease-out}
+  @keyframes pulso-ponto{0%{box-shadow:0 0 0 0 rgba(28,26,24,.24)}40%{transform:translate(-50%,-50%) scale(1.4)}100%{box-shadow:0 0 0 9px rgba(28,26,24,0);transform:translate(-50%,-50%) scale(1)}}
+  .data{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--suave);margin-bottom:20px;display:flex;gap:10px;align-items:center}
+  .tag{background:var(--tinta);color:var(--creme);border-radius:999px;padding:2px 8px;font-size:10px;letter-spacing:.1em}
+  .pol{background:var(--branco);padding:12px 12px 40px;box-shadow:0 10px 24px -12px rgba(40,28,20,.45),0 1px 2px rgba(40,28,20,.15);
+       transform:rotate(var(--r,-2deg));position:relative;width:min(calc(100% - 10px),380px);margin:0 0 24px;cursor:zoom-in}
+  .pol .fita{position:absolute;top:-11px;left:50%;width:90px;height:24px;transform:translateX(-50%) rotate(-4deg);background:var(--fita)}
+  .pol img{display:block;width:100%;height:auto;filter:sepia(.25) brightness(1.15) contrast(.8) saturate(.6);opacity:.25;transition:filter 1.6s ease,opacity 1.2s ease}
+  .pol.revelada img{filter:none;opacity:1}
+  .pol.peq{width:62%;margin-left:30%;margin-top:-30px;padding-bottom:26px}
+  .texto p{font-size:18px;line-height:1.6}
+  .video{position:relative;aspect-ratio:16/9;margin-bottom:22px;border-radius:4px;overflow:hidden;background:#2a2622 url(img/4.jpg) center/cover}
+  .video:after{content:"";position:absolute;inset:0;background:rgba(28,26,24,.45)}
+  .video b{position:absolute;z-index:2;left:50%;top:50%;transform:translate(-50%,-50%);background:var(--creme);color:var(--tinta);border-radius:999px;padding:10px 20px;font-style:italic;font-weight:400}
+  .em-breve{color:var(--suave);font-style:italic}
+  .fim{text-align:center;color:var(--suave);font-style:italic}
+  .fim .ass{font-family:Caveat,cursive;font-style:normal;font-size:30px;color:var(--tinta);margin-top:14px}
+  .lb{position:fixed;inset:0;background:rgba(20,18,16,.94);display:none;align-items:center;justify-content:center;z-index:9;padding:20px}
+  .lb.on{display:flex}.lb img{max-width:100%;max-height:85vh}
+  .lb span{position:absolute;top:16px;right:20px;color:#eee;font-family:"JetBrains Mono",monospace;font-size:13px}
+  @media (prefers-reduced-motion:reduce){
+    .pol img{transition:none;filter:none;opacity:1}
+    .ano-t{opacity:1;transform:none;transition:none}
+    .item.pulso:before{animation:none}
+    .particula{display:none}
+  }
+</style>
+</head>
+<body>
+<main>
+  <div class="novas">3 lembranças novas desde a sua última visita <a href="#n">ver</a></div>
+  <header class="abre">
+    <div class="nome">Yasmim</div><div class="ano">2026</div>
+    <p class="f1">O mundo não se limita ao que você conhece.</p>
+    <p class="f2">Nem você, ao que acredita ser.</p>
+  </header>
+  <nav class="anos"><a href="#a2009">2009</a><a href="#a2012">2012</a><a href="#a2016">2016</a><a href="#a2026">2026</a><a href="#">depois</a></nav>
+  <div class="linha">
+    <h2 class="ano-t" id="a2009">2009</h2>
+    <section class="item">
+      <div class="data">por volta de março</div>
+      <figure class="pol" style="--r:-2deg"><span class="fita"></span><img src="img/1.jpg" alt=""></figure>
+      <div class="texto"><p>Não lembro o assunto. Lembro desse dia.</p></div>
+    </section>
+    <section class="item">
+      <div class="data">dezembro</div>
+      <figure class="pol" style="--r:2deg"><span class="fita"></span><img src="img/2.jpg" alt=""></figure>
+    </section>
+    <h2 class="ano-t" id="a2012">2012</h2>
+    <section class="item" id="n">
+      <div class="data">primeiro dia de aula <span class="tag">nova</span></div>
+      <figure class="pol" style="--r:-1.5deg"><span class="fita"></span><img src="img/3.jpg" alt=""></figure>
+      <figure class="pol peq" style="--r:4deg"><img src="img/5.jpg" alt=""></figure>
+      <div class="texto"><p>Você pediu para repetir a foto. Esta ficou.</p></div>
+    </section>
+    <h2 class="ano-t" id="a2016">2016</h2>
+    <section class="item">
+      <div class="data">férias <span class="tag">nova</span></div>
+      <div class="video"><b>▶ ver vídeo · 0:42</b></div>
+      <div class="texto"><p>Ninguém sabia filmar. Ainda bem.</p></div>
+    </section>
+    <h2 class="ano-t" id="a2026">2026</h2>
+    <section class="item">
+      <div class="data">terceirão <span class="tag">nova</span></div>
+      <figure class="pol" style="--r:2deg"><span class="fita"></span><img src="img/0.jpg" alt=""></figure>
+    </section>
+    <section class="item">
+      <div class="data">depois</div>
+      <p class="em-breve">em breve.</p>
+    </section>
+  </div>
+  <footer class="fim"><span>continua…</span><div class="ass">Jr.</div></footer>
+</main>
+<div class="lb" id="lb"><span>fechar ✕</span><img id="lbi" alt=""></div>
+<script>
+// Ajustes principais: partículas em pixels/segundo e respiração em milissegundos.
+const PARTICULAS_ATIVAS = true;
+const PARTICULAS_QUANTIDADE = 9;
+const PARTICULAS_VELOCIDADE = 18;
+const PONTO_LEITURA = .60;
+const AMPLITUDE = 7;
+const CICLO_RESPIRACAO = 8000;
+const INTERVALO_CURVA = 1000 / 12;
+const FIOS_QUANTIDADE = 6;
+const ALTURA_LEQUE = 150;
+
+(() => {
+  const linha = document.querySelector('.linha');
+  const itens = [...linha.querySelectorAll('.item')];
+  const movimento = matchMedia('(prefers-reduced-motion: reduce)');
+  const ns = 'http://www.w3.org/2000/svg';
+  const criar = (nome, atributos, pai) => {
+    const el = document.createElementNS(ns, nome);
+    Object.entries(atributos).forEach(([chave, valor]) => el.setAttribute(chave, valor));
+    pai.appendChild(el);
+    return el;
+  };
+  const svg = criar('svg', {class:'linha-viva', 'aria-hidden':'true', focusable:'false'}, linha);
+  const defs = criar('defs', {}, svg);
+  const gradiente = criar('linearGradient', {id:'possibilidades', x1:'0%', y1:'0%', x2:'0%', y2:'100%'}, defs);
+  criar('stop', {offset:'0%', 'stop-color':'#1C1A18', 'stop-opacity':'.55'}, gradiente);
+  criar('stop', {offset:'100%', 'stop-color':'#1C1A18', 'stop-opacity':'0'}, gradiente);
+  const futuro = criar('path', {class:'linha-futuro'}, svg);
+  const tinta = criar('path', {class:'linha-tinta'}, svg);
+  const fios = Array.from({length:FIOS_QUANTIDADE}, () => ({
+    el:criar('path', {stroke:'url(#possibilidades)'}, svg), comprimento:0
+  }));
+  const particulas = Array.from({length:PARTICULAS_ATIVAS ? PARTICULAS_QUANTIDADE : 0}, (_, i) => ({
+    el:criar('circle', {class:'particula', r:1 + (i % 3) * .2}, svg),
+    fase:i / Math.max(1, PARTICULAS_QUANTIDADE)
+  }));
+  const halo = criar('circle', {class:'agora-halo', r:6}, svg);
+  const agora = criar('circle', {class:'agora', r:2.5}, svg);
+  let altura = 1, fim = 1, largura = 1, comprimento = 0, visivel = 0;
+  let topo = 0, marcas = [], geometriaSuja = true, leituraSuja = true;
+  let raf = 0, ultimaCurva = -Infinity, anterior = 0, tempo = 0, percurso = 0;
+  const limitar = (n, min, max) => Math.min(max, Math.max(min, n));
+  const posicionar = (el, ponto) => {
+    el.setAttribute('cx', ponto.x);
+    el.setAttribute('cy', ponto.y);
+  };
+
+  // A curva é monotônica em Y; busca binária encontra a posição exata no SVG.
+  function distanciaEmY(y) {
+    if (y <= 0) return 0;
+    if (y >= fim) return comprimento;
+    let baixo = 0, alto = comprimento;
+    for (let i = 0; i < 13; i++) {
+      const meio = (baixo + alto) / 2;
+      if (tinta.getPointAtLength(meio).y < y) baixo = meio;
+      else alto = meio;
+    }
+    return (baixo + alto) / 2;
+  }
+
+  function medir() {
+    const retangulo = linha.getBoundingClientRect();
+    topo = retangulo.top + window.scrollY;
+    altura = linha.offsetHeight;
+    largura = linha.clientWidth;
+    fim = Math.max(1, altura - ALTURA_LEQUE);
+    svg.setAttribute('viewBox', `0 0 ${largura} ${altura}`);
+    marcas = itens.map(item => ({
+      item, y:item.getBoundingClientRect().top + window.scrollY - topo + 9.5
+    }));
+    geometriaSuja = false;
+  }
+
+  function desenharCurva() {
+    const fase = movimento.matches ? 0 : tempo * Math.PI * 2 / CICLO_RESPIRACAO;
+    const x = y => 7 + AMPLITUDE * Math.sin(y / 180 + fase);
+    const derivada = y => AMPLITUDE / 180 * Math.cos(y / 180 + fase);
+    let d = `M ${x(0)} 0`;
+    // Segmentos cúbicos curtos mantêm a onda suave, sem medir o layout por quadro.
+    for (let y = 0; y < fim; y += 64) {
+      const proximo = Math.min(y + 64, fim), passo = (proximo - y) / 3;
+      d += ` C ${x(y) + derivada(y)*passo} ${y+passo} ${x(proximo)-derivada(proximo)*passo} ${proximo-passo} ${x(proximo)} ${proximo}`;
+    }
+    futuro.setAttribute('d', d);
+    tinta.setAttribute('d', d);
+    comprimento = tinta.getTotalLength();
+    tinta.style.strokeDasharray = `${comprimento} ${comprimento}`;
+    marcas.forEach(marca => {
+      const ponto = tinta.getPointAtLength(distanciaEmY(marca.y));
+      marca.item.style.setProperty('--ponto-x', `${ponto.x - marca.item.offsetLeft}px`);
+    });
+    const abertura = Math.min(largura - 24, 170);
+    fios.forEach((fio, i) => {
+      const proporcao = (i + 1) / fios.length;
+      const destino = x(fim) + 12 + abertura * proporcao;
+      fio.el.setAttribute('d', `M ${x(fim)} ${fim} C ${x(fim)+derivada(fim)*38} ${fim+38} ${destino} ${fim+65} ${destino} ${altura}`);
+      fio.comprimento = fio.el.getTotalLength();
+      fio.el.style.strokeDasharray = `${fio.comprimento} ${fio.comprimento}`;
+    });
+    leituraSuja = true;
+  }
+
+  function atualizarLeitura() {
+    const y = movimento.matches ? altura : window.scrollY + window.innerHeight * PONTO_LEITURA - topo;
+    visivel = distanciaEmY(y);
+    tinta.style.strokeDashoffset = comprimento - visivel;
+    posicionar(agora, tinta.getPointAtLength(visivel));
+    posicionar(halo, tinta.getPointAtLength(visivel));
+    agora.style.display = halo.style.display = y < 0 ? 'none' : '';
+    marcas.forEach(({item, y:alturaItem}) => {
+      const passou = y >= alturaItem;
+      const estava = item.classList.contains('alcancado');
+      item.classList.toggle('alcancado', passou);
+      if (passou && !estava && !movimento.matches) item.classList.add('pulso');
+      if (!passou || movimento.matches) item.classList.remove('pulso');
+    });
+    fios.forEach(fio => {
+      // Cada fio também cresce até a altura de leitura, seguindo sua própria curva.
+      let baixo = 0, alto = fio.comprimento;
+      if (y > fim && y < altura) {
+        for (let i = 0; i < 11; i++) {
+          const meio = (baixo + alto) / 2;
+          if (fio.el.getPointAtLength(meio).y < y) baixo = meio;
+          else alto = meio;
+        }
+      }
+      const trecho = y <= fim ? 0 : y >= altura ? fio.comprimento : (baixo + alto) / 2;
+      fio.el.style.strokeDashoffset = fio.comprimento - trecho;
+    });
+    leituraSuja = false;
+  }
+
+  function animar(agoraMs) {
+    raf = 0;
+    if (document.hidden) return;
+    const delta = anterior ? Math.min(agoraMs - anterior, 100) : 0;
+    anterior = agoraMs;
+    tempo += delta;
+    if (geometriaSuja) { medir(); ultimaCurva = -Infinity; }
+    if (agoraMs - ultimaCurva >= INTERVALO_CURVA) {
+      desenharCurva();
+      ultimaCurva = movimento.matches ? Infinity : agoraMs;
+    }
+    if (leituraSuja) atualizarLeitura();
+    percurso += delta / 1000 * PARTICULAS_VELOCIDADE;
+    particulas.forEach(particula => {
+      const mostrar = !movimento.matches && visivel > 12;
+      particula.el.style.display = mostrar ? '' : 'none';
+      if (mostrar) {
+        // O módulo usa apenas o trecho escrito, inclusive com a página parada.
+        const distancia = (particula.fase * visivel + percurso) % visivel;
+        posicionar(particula.el, tinta.getPointAtLength(distancia));
+      }
+    });
+    if (!movimento.matches) solicitarQuadro();
+  }
+  function solicitarQuadro() {
+    if (!raf && !document.hidden) raf = requestAnimationFrame(animar);
+  }
+  function invalidar() { geometriaSuja = true; solicitarQuadro(); }
+  window.addEventListener('scroll', () => { leituraSuja = true; solicitarQuadro(); }, {passive:true});
+  window.addEventListener('resize', invalidar, {passive:true});
+  document.querySelectorAll('img').forEach(img => img.addEventListener('load', invalidar, {passive:true}));
+  // Captura alterações de altura por fontes, imagens e orientação sem varrer o DOM.
+  if ('ResizeObserver' in window) new ResizeObserver(invalidar).observe(linha);
+  if (document.fonts) document.fonts.ready.then(invalidar);
+  movimento.addEventListener('change', invalidar, {passive:true});
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) { cancelAnimationFrame(raf); raf = 0; anterior = 0; }
+    else { leituraSuja = true; solicitarQuadro(); }
+  }, {passive:true});
+  itens.forEach(item => item.addEventListener('animationend', () => item.classList.remove('pulso'), {passive:true}));
+
+  // As polaroids continuam a revelar e os anos aparecem uma única vez.
+  const io = new IntersectionObserver(entradas => entradas.forEach(entrada => {
+    if (!entrada.isIntersecting) return;
+    entrada.target.classList.add(entrada.target.matches('.pol') ? 'revelada' : 'visivel');
+    io.unobserve(entrada.target);
+  }), {threshold:.35});
+  document.querySelectorAll('.pol, .ano-t').forEach(el => io.observe(el));
+  const lb = document.getElementById('lb'), lbi = document.getElementById('lbi');
+  document.querySelectorAll('.pol').forEach(pol => pol.addEventListener('click', () => {
+    lbi.src = pol.querySelector('img').src;
+    lb.classList.add('on');
+  }, {passive:true}));
+  lb.addEventListener('click', () => lb.classList.remove('on'), {passive:true});
+  document.addEventListener('keydown', evento => {
+    if (evento.key === 'Escape') lb.classList.remove('on');
+  }, {passive:true});
+  solicitarQuadro();
+})();
+</script>
+</body>
+</html>
