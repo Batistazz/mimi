@@ -132,7 +132,11 @@ const AMPLITUDE_DESVIO = 22;
 // Envelope conservador da curva inteira + meia espessura + folga visível.
 const FOLGA_ITEM = AMPLITUDE_DESVIO + LARGURA_MAX/2 + 17;
 const RESPIRO_BORDA = 8;
-const RAMO_COMPRIMENTO = 14;
+const RAMO_ESPESSURA = 1.0; // Proporção da pressão da linha na origem.
+const GAVINHA_TAMANHO = [26, 40]; // Haste secundária, em px.
+const GAVINHA_VOLTAS = [1.0, 1.6];
+const RAMO_DURACAO = [700, 900]; // ms, incluindo o enrolar final.
+const CHANCE_GALHINHO = 0.6;
 const INERCIA = 0.10;
 const FREQUENCIA_FALHAS = 0.004;
 const TAMANHO_ACUMULO = 6;
@@ -176,7 +180,7 @@ const ALTURA_LEQUE = 150;
   }
   let altura = 1, fim = 1, topo = 0, marcas = [], caminhos = [], pausasAnos = [];
   let ponta = 0, alvo = 0, maximo = 0, seco = 0, umidade = 0;
-  let geometriaSuja = true, raf = 0, anterior = 0;
+  let geometriaSuja = true, raf = 0, anterior = 0, leque = [];
   const PASSO = .7, MARGEM = 0;
   let LARGURA_CANVAS = 1;
 
@@ -203,6 +207,131 @@ const ALTURA_LEQUE = 150;
         textura:aleatorio(id + 1901)});
     }
     return pontos;
+  }
+  const suave = t => 1-Math.pow(1-limitar(t, 0, 1), 3);
+  function bezier(a, b, c, d, t) {
+    const u = 1-t;
+    return {x:u*u*u*a.x+3*u*u*t*b.x+3*u*t*t*c.x+t*t*t*d.x,
+      y:u*u*u*a.y+3*u*u*t*b.y+3*u*t*t*c.y+t*t*t*d.y};
+  }
+  // Pressão e crescimento seguem a distância real ao longo da curva.
+  function filamento(funcao, largura, sal, apagar = false, pontaFina = .6) {
+    const pontos = [];
+    let distancia = 0, ultimo;
+    for (let i = 0; i <= 320; i++) {
+      const t = i/320, p = funcao(t);
+      if (ultimo) distancia += Math.hypot(p.x-ultimo.x, p.y-ultimo.y);
+      pontos.push({...p, distancia, largura:misturar(largura, apagar ? .05 : pontaFina, Math.pow(t, .8))*
+        (1+.09*ruido(t*5, sal)), alfa:apagar ? .91*Math.pow(1-t, .6) : .9});
+      ultimo = p;
+    }
+    return {pontos, comprimento:distancia};
+  }
+  function enrolar(origem, direcao, sal, largura = 1.8) {
+    const comprimento = misturar(...GAVINHA_TAMANHO, aleatorio(sal));
+    const voltas = misturar(...GAVINHA_VOLTAS, aleatorio(sal+1));
+    const raio = 3.6+aleatorio(sal+2)*2.2;
+    const sinal = aleatorio(sal+3) < .5 ? -1 : 1;
+    const v = {x:Math.cos(direcao), y:Math.sin(direcao)};
+    const n = {x:-v.y*sinal, y:v.x*sinal};
+    const fimHaste = {x:origem.x+v.x*comprimento, y:origem.y+v.y*comprimento};
+    return filamento(t => {
+      if (t <= .48) {
+        const u = t/.48;
+        // Derivada final alinhada à primeira volta da espiral.
+        const onda = Math.sin(u*Math.PI)**2*1.3;
+        return {x:origem.x+v.x*comprimento*u+n.x*onda,
+          y:origem.y+v.y*comprimento*u+n.y*onda};
+      }
+      const u = (t-.48)/.52, angulo = u*Math.PI*2*voltas;
+      const r = raio*(1-.78*u*u), avancar = Math.sin(angulo)*r;
+      const curvar = raio-Math.cos(angulo)*r;
+      return {x:fimHaste.x+v.x*avancar+n.x*curvar,
+        y:fimHaste.y+v.y*avancar+n.y*curvar};
+    }, largura, sal+8, false, .15);
+  }
+  function criarRamo(marca, item, indice) {
+    if (!marca.lado) return null;
+    const foto = item.querySelector('.pol'), destino = foto || item.querySelector('.video');
+    const r = destino.getBoundingClientRect();
+    // Centro da caixa rotacionada = centro local da foto. Chega à borda,
+    // logo abaixo da fita, sem deslocar a foto nem reduzir a folga do eixo.
+    const angulo = foto ? parseFloat(getComputedStyle(item).getPropertyValue('--inclinacao'))*Math.PI/180 : 0;
+    const dx = -marca.lado*(destino.offsetWidth/2-1), dy = -destino.offsetHeight/2+17;
+    const chegada = {x:r.left+r.width/2-linha.getBoundingClientRect().left+dx*Math.cos(angulo)-dy*Math.sin(angulo),
+      y:r.top+r.height/2+scrollY-topo+dx*Math.sin(angulo)+dy*Math.cos(angulo)};
+    const y = marca.y-13, origem = {x:xEm(y), y};
+    const tangente = (xEm(y+2)-xEm(y-2))/4, queda = Math.max(18, (chegada.y-y)*.5);
+    const b = {x:origem.x+tangente*queda, y:y+queda};
+    const c = {x:chegada.x-marca.lado*18, y:chegada.y-8};
+    const sal = 6001+indice*113;
+    const curva = t => {
+      const p = bezier(origem, b, c, chegada, t);
+      p.y += ruido(t*3, sal)*Math.sin(Math.PI*t)**2*1.1;
+      return p;
+    };
+    const local = caminhos[0][Math.max(0, Math.floor(y/PASSO))];
+    const principal = filamento(curva, local.largura*RAMO_ESPESSURA, sal);
+    const t = .44+aleatorio(sal+1)*.14, base = curva(t), proximo = curva(t+.01);
+    const direcao = Math.atan2(proximo.y-base.y, proximo.x-base.x);
+    const lado = aleatorio(sal+2) < .5 ? -1 : 1;
+    const gavinha = enrolar(base, direcao+lado*(.9+aleatorio(sal+3)*.35), sal+10);
+    const partes = [{...principal, de:0, ate:.76}, {...gavinha, de:.32, ate:1}];
+    if (aleatorio(sal+4) < CHANCE_GALHINHO) {
+      const inicio = curva(.7), a = direcao-lado*.9, tamanho = 7+aleatorio(sal+5)*4;
+      partes.push({...filamento(t => ({x:inicio.x+Math.cos(a)*tamanho*t,
+        y:inicio.y+Math.sin(a)*tamanho*t}), 1.3, sal+30), de:.62, ate:.9});
+    }
+    if (aleatorio(sal+6) < .6) partes[1].broto = 1.5+aleatorio(sal+7)*.7;
+    return {partes, duracao:misturar(...RAMO_DURACAO, aleatorio(sal+8)),
+      inicio:null, progresso:0, seco:false, item};
+  }
+  function desenharFilamento(ctx, fio, progresso) {
+    const limite = fio.comprimento*limitar(progresso, 0, 1);
+    ctx.strokeStyle = ctx.fillStyle = '#1C1A18';
+    ctx.lineCap = 'round';
+    for (let i = 1; i < fio.pontos.length; i++) {
+      const a = fio.pontos[i-1], b = fio.pontos[i];
+      if (a.distancia >= limite) break;
+      const t = limitar((limite-a.distancia)/(b.distancia-a.distancia || 1), 0, 1);
+      ctx.globalAlpha = b.alfa;
+      ctx.lineWidth = b.largura;
+      ctx.beginPath(); ctx.moveTo(a.x, a.y);
+      ctx.lineTo(misturar(a.x, b.x, t), misturar(a.y, b.y, t)); ctx.stroke();
+    }
+    if (fio.broto && progresso >= 1) {
+      const p = fio.pontos[fio.pontos.length-1];
+      ctx.globalAlpha = .93;
+      ctx.beginPath(); ctx.ellipse(p.x, p.y, fio.broto*.8, fio.broto, -.4, 0, Math.PI*2); ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+  }
+  function desenharCrescimento(ctx, ramo) {
+    ramo.partes.forEach(fio => desenharFilamento(ctx, fio,
+      suave((ramo.progresso-fio.de)/(fio.ate-fio.de))));
+  }
+  function crescer(agora) {
+    let ativo = false, ultimoInicio = -Infinity;
+    marcas.forEach(m => {
+      const ramo = m.ramo;
+      if (!ramo) return;
+      if (ponta >= m.y && ramo.inicio === null) ramo.inicio = Math.max(agora, ultimoInicio+140);
+      if (ramo.inicio !== null) ultimoInicio = ramo.inicio;
+      if (movimento.matches) ramo.progresso = 1;
+      else if (ramo.inicio !== null) ramo.progresso = Math.max(ramo.progresso, limitar((agora-ramo.inicio)/ramo.duracao, 0, 1));
+      if (ramo.progresso >= .76 && !ramo.revelado) {
+        ramo.item.querySelectorAll('.pol').forEach(pol => pol.classList.add('revelada'));
+        ramo.revelado = true;
+      }
+      if (ramo.inicio !== null && ramo.progresso < 1) ativo = true;
+    });
+    leque.forEach((fio, i) => {
+      if (ponta >= fim && fio.inicio === null) fio.inicio = agora+i*125;
+      if (movimento.matches) fio.progresso = 1;
+      else if (fio.inicio !== null) fio.progresso = Math.max(fio.progresso, limitar((agora-fio.inicio)/fio.duracao, 0, 1));
+      if (fio.inicio !== null && fio.progresso < 1) ativo = true;
+    });
+    return ativo;
   }
   function medir() {
     const retangulo = linha.getBoundingClientRect();
@@ -233,11 +362,12 @@ const ALTURA_LEQUE = 150;
     });
     altura = linha.offsetHeight;
     fim = Math.max(1, altura - ALTURA_LEQUE);
-    marcas = itens.map(item => {
+    const anteriores = marcas;
+    marcas = itens.map((item, i) => {
       const data = item.querySelector('.data');
       const y = data.getBoundingClientRect().top + scrollY - topo + 9.5;
       const lado = Number(item.dataset.lado || 0);
-      return {y, lado};
+      return {y, lado, anterior:anteriores[i]?.ramo};
     });
     pausasAnos = [...linha.querySelectorAll('.ano-t')].map(ano => {
       // offsetTop ignora a translação transitória da animação de entrada.
@@ -246,15 +376,34 @@ const ALTURA_LEQUE = 150;
     altura = linha.offsetHeight;
     fim = Math.max(1, altura - ALTURA_LEQUE);
     caminhos = [amostrar(xEm, 0, fim)];
-    const origem = xEm(fim), tangente = (xEm(fim)-xEm(fim-4))/4;
-    for (let i = 0; i < FIOS_QUANTIDADE; i++) {
-      const abertura = (i-(FIOS_QUANTIDADE-1)/2)*32 + (aleatorio(i + 221)-.5)*6;
-      caminhos.push(amostrar(y => {
-        const t = (y-fim)/ALTURA_LEQUE;
-        // Derivada inicial comum; depois os futuros se abrem sem simetria perfeita.
-        return origem + tangente*ALTURA_LEQUE*t*Math.pow(1-t, 2) + abertura*t*t*(3-2*t) + ruido(t*2, 2800+i)*t*t*1.5;
-      }, fim, altura, i));
-    }
+    marcas.forEach((marca, i) => {
+      marca.ramo = criarRamo(marca, itens[i], i);
+      if (marca.ramo && marca.anterior) {
+        marca.ramo.inicio = marca.anterior.inicio;
+        marca.ramo.progresso = marca.anterior.progresso;
+        marca.ramo.revelado = marca.anterior.revelado;
+      }
+      delete marca.anterior;
+      marca.seco = false;
+    });
+    const lequeAnterior = leque;
+    const origem = {x:xEm(fim), y:fim}, tangente = (xEm(fim)-xEm(fim-4))/4;
+    leque = Array.from({length:FIOS_QUANTIDADE}, (_, i) => {
+      const abertura = (i-(FIOS_QUANTIDADE-1)/2)*29+(aleatorio(i+221)-.5)*9;
+      const comprimento = ALTURA_LEQUE*(.58+.34*aleatorio(i+223));
+      const curva = t => ({x:origem.x+tangente*comprimento*t*Math.pow(1-t, 2)+
+        abertura*t*t*(3-2*t)+ruido(t*3, 2800+i)*Math.sin(Math.PI*t)**2*1.7,
+        y:fim+comprimento*t});
+      const enrolado = i === 0 || i === FIOS_QUANTIDADE-2;
+      const principal = filamento(curva, LARGURA_MAX*(.60+.1*aleatorio(i+225)), 8100+i, !enrolado);
+      const partes = [{...principal, de:0, ate:enrolado ? .73 : 1}];
+      if (enrolado) {
+        const p = curva(1), a = curva(.99);
+        partes.push({...enrolar(p, Math.atan2(p.y-a.y, p.x-a.x), 8200+i, .6), de:.73, ate:1});
+      }
+      return {partes, duracao:900+i*75, inicio:lequeAnterior[i]?.inicio ?? null,
+        progresso:lequeAnterior[i]?.progresso || 0, seco:false};
+    });
     const dpr = window.devicePixelRatio || 1;
     for (const superficie of [canvas, reserva]) {
       superficie.width = Math.ceil(LARGURA_CANVAS*dpr);
@@ -288,20 +437,9 @@ const ALTURA_LEQUE = 150;
     });
     ctx.globalAlpha = 1;
   }
-  function marcos(ctx) {
-    marcas.forEach((marca, indice) => {
+  function marcos(ctx, marca, indice) {
       if (ponta <= marca.y) return;
       const fracao = limitar((ponta-marca.y)/8, 0, 1), x = xEm(marca.y) + MARGEM;
-      // O ramo nasce com o marco e afina com a mesma textura/pressão da tinta.
-      if (marca.lado) {
-        const comprimento = Math.min(RAMO_COMPRIMENTO, FOLGA_ITEM);
-        for (let d = 0; d <= comprimento*fracao; d += PASSO) {
-          const t = d/comprimento;
-          carimbar(ctx, {x:x-MARGEM+marca.lado*d, y:marca.y+Math.sin(t*Math.PI)*1.2,
-            largura:misturar(LARGURA_MIN, LARGURA_MAX, .32)*Math.pow(1-t, .75),
-            alfa:.9, falha:false, textura:aleatorio(indice*101+Math.floor(d/PASSO))});
-        }
-      }
       ctx.fillStyle = '#1C1A18';
       ctx.strokeStyle = '#1C1A18';
       ctx.lineWidth = 2.4;
@@ -316,19 +454,33 @@ const ALTURA_LEQUE = 150;
       }
       ctx.stroke();
       if (fracao === 1) { ctx.closePath(); ctx.fill(); }
-    });
     ctx.globalAlpha = 1;
   }
   function desenhar() {
-    const novoSeco = Math.max(seco, ponta - 10);
+    const novoSeco = Math.max(seco, Math.min(fim, ponta - 10));
     trecho(tinta, seco, novoSeco);
     seco = novoSeco;
+    marcas.forEach((marca, i) => {
+      if (!marca.seco && ponta >= marca.y+8) {
+        marcos(tinta, marca, i); marca.seco = true;
+      }
+      if (marca.ramo && !marca.ramo.seco && marca.ramo.progresso >= 1) {
+        desenharCrescimento(tinta, marca.ramo); marca.ramo.seco = true;
+      }
+    });
+    leque.forEach(fio => {
+      if (!fio.seco && fio.progresso >= 1) { desenharCrescimento(tinta, fio); fio.seco = true; }
+    });
     contexto.clearRect(0, 0, LARGURA_CANVAS, altura);
     contexto.drawImage(reserva, 0, 0, LARGURA_CANVAS, altura);
     trecho(contexto, seco, ponta, true);
-    marcos(contexto);
-    if (umidade > .002 && ponta > 0 && ponta < altura && !movimento.matches && !pausasAnos.some(pausa => ponta >= pausa.de && ponta <= pausa.ate)) {
-      const pontas = ponta < fim ? [xEm(ponta)] : caminhos.slice(1).map(pontos => pontos[Math.min(pontos.length-1, Math.floor((ponta-fim)/PASSO))].x);
+    marcas.forEach((marca, i) => {
+      if (!marca.seco) marcos(contexto, marca, i);
+      if (marca.ramo && !marca.ramo.seco) desenharCrescimento(contexto, marca.ramo);
+    });
+    leque.forEach(fio => { if (!fio.seco) desenharCrescimento(contexto, fio); });
+    if (umidade > .002 && ponta > 0 && ponta < fim && !movimento.matches && !pausasAnos.some(pausa => ponta >= pausa.de && ponta <= pausa.ate)) {
+      const pontas = [xEm(ponta)];
       contexto.fillStyle = '#1C1A18';
       contexto.globalAlpha = umidade*.19;
       pontas.forEach(x => {
@@ -360,9 +512,10 @@ const ALTURA_LEQUE = 150;
     const velocidade = (ponta-antes)/quadros;
     umidade = movimento.matches ? 0 : velocidade > .015 ? Math.min(1, umidade+.15*quadros) : umidade*Math.pow(.86, quadros);
     if (umidade < .002) umidade = 0;
+    const crescendo = crescer(agora);
     desenhar();
     // Um único relógio: dorme depois da chegada e da secagem, inclusive no leque.
-    if (ponta < alvo || umidade > 0) solicitarQuadro();
+    if (ponta < alvo || umidade > 0 || crescendo) solicitarQuadro();
     else anterior = 0;
   }
   function solicitarQuadro() {
@@ -387,13 +540,13 @@ const ALTURA_LEQUE = 150;
     else invalidar();
   }, {passive:true});
 
-  // As polaroids continuam a revelar e os anos aparecem uma única vez.
+  // Os anos entram por visibilidade; as fotos revelam ao toque do ramo.
   const io = new IntersectionObserver(entradas => entradas.forEach(entrada => {
     if (!entrada.isIntersecting) return;
-    entrada.target.classList.add(entrada.target.matches('.pol') ? 'revelada' : 'visivel');
+    entrada.target.classList.add('visivel');
     io.unobserve(entrada.target);
   }), {threshold:.35});
-  document.querySelectorAll('.pol, .ano-t').forEach(el => io.observe(el));
+  document.querySelectorAll('.ano-t').forEach(el => io.observe(el));
   const lb = document.getElementById('lb'), lbi = document.getElementById('lbi');
   document.querySelectorAll('.pol').forEach(pol => pol.addEventListener('click', () => {
     lbi.src = pol.querySelector('img').src;
