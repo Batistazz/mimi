@@ -4,60 +4,81 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
-<title>Mimi</title>
+<meta name="color-scheme" content="light">
+<title>Yasmim</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;1,9..144,300&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500&family=Fraunces:ital,opsz,wght@0,9..144,300;1,9..144,300;1,9..144,400&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
 <style>
-  :root{--fundo:#fbf5ee;--tinta:#2d2420;--suave:#8a7468;--acento:#c9705a;--linha:#ead9cb}
+  :root{--creme:#F4EFE6;--tinta:#1C1A18;--suave:#6F6A64;--linha:#CFC7BA;--branco:#FFFEFB;--fita:rgba(227,216,197,.85)}
   *{box-sizing:border-box;margin:0;padding:0}
-  body{background:var(--fundo);color:var(--tinta);font-family:Inter,system-ui,sans-serif;
-       display:flex;align-items:center;justify-content:center;padding:48px 20px;min-height:100vh;
-       background-image:radial-gradient(circle at 20% 10%,#f6e3d6 0,transparent 45%),radial-gradient(circle at 85% 90%,#f3dfe0 0,transparent 40%)}
-  main{max-width:520px;width:100%;text-align:center}
-  .tag{font-size:12px;letter-spacing:.28em;text-transform:uppercase;color:var(--suave)}
-  h1{font-family:Fraunces,Georgia,serif;font-weight:300;font-size:clamp(84px,24vw,140px);line-height:1;margin:18px 0 8px;letter-spacing:-.02em}
-  h1 em{color:var(--acento);font-style:italic}
-  .sub{font-family:Fraunces,Georgia,serif;font-style:italic;font-weight:300;font-size:20px;color:var(--suave)}
-  hr{border:0;height:1px;background:var(--linha);margin:36px auto;width:64px}
-  p.txt{font-size:17px;line-height:1.7;max-width:420px;margin:0 auto}
-  .breve{margin-top:40px;display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
-  .breve div{border:1px dashed var(--linha);border-radius:14px;padding:18px 6px;font-size:13px;color:var(--suave)}
-  .breve b{display:block;font-family:Fraunces,Georgia,serif;font-weight:500;font-size:18px;color:var(--tinta);margin-bottom:4px}
-  .ass{margin-top:44px;font-family:Fraunces,Georgia,serif;font-style:italic;font-size:19px}
-  .ass small{display:block;font-family:Inter,sans-serif;font-style:normal;font-size:12px;color:var(--suave);margin-top:6px;letter-spacing:.04em}
-  form{margin-top:34px;display:flex;flex-direction:column;gap:12px;align-items:center}
-  input{font:inherit;font-size:18px;text-align:center;padding:14px 18px;width:min(280px,100%);border:1px solid var(--linha);border-radius:999px;background:#fff;color:var(--tinta);outline:none}
-  input:focus{border-color:var(--acento)}
-  button{font:inherit;font-weight:500;padding:12px 34px;border:0;border-radius:999px;background:var(--acento);color:#fff;cursor:pointer}
-  .erro{min-height:20px;font-size:14px;color:var(--acento)}
+  html{background:var(--creme)}
+  body{background:var(--creme);color:var(--tinta);font-family:Fraunces,Georgia,serif;min-height:100vh;
+       background-image:radial-gradient(circle at 10% 0%,#EFE7DA 0,transparent 50%),radial-gradient(circle at 100% 100%,#ECE4D6 0,transparent 45%)}
+  main{max-width:560px;margin:0 auto;padding:56px 16px 80px}
+
+  /* entrada */
+  .porta{min-height:86vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:26px}
+  .pol{background:var(--branco);padding:14px 14px 0;box-shadow:0 10px 24px -12px rgba(40,28,20,.45),0 1px 2px rgba(40,28,20,.15);
+       transform:rotate(var(--r,-2deg));position:relative;margin:0 auto}
+  .pol .fita{position:absolute;top:-12px;left:50%;width:96px;height:26px;transform:translateX(-50%) rotate(-4deg);background:var(--fita)}
+  .porta .pol{width:220px;padding-bottom:16px}
+  .porta .vazia{aspect-ratio:1;background:#EDE7DC;display:flex;align-items:center;justify-content:center;font-family:Caveat,cursive;font-size:22px;color:var(--suave)}
+  .porta .leg{font-family:Caveat,cursive;font-size:30px;margin-top:10px}
+  form{display:flex;flex-direction:column;gap:12px;align-items:center;width:100%}
+  input{font-family:"JetBrains Mono",Consolas,monospace;font-size:18px;letter-spacing:.12em;text-align:center;padding:13px 20px;
+        width:min(280px,100%);border:1px solid var(--linha);border-radius:999px;background:var(--branco);color:var(--tinta);outline:none}
+  input:focus{border-color:var(--tinta)}
+  button{font:inherit;font-style:italic;font-size:17px;padding:10px 30px;border:0;border-radius:999px;background:var(--tinta);color:var(--creme);cursor:pointer}
+  .erro{min-height:20px;font-size:14px;font-style:italic;color:var(--suave)}
+
+  /* conteúdo */
+  .abre{text-align:center;padding:24px 0 56px}
+  .abre .nome{font-family:Caveat,cursive;font-size:64px;line-height:1}
+  .abre .ano{font-family:"JetBrains Mono",monospace;font-size:12px;letter-spacing:.3em;color:var(--suave);margin:8px 0 34px}
+  .abre .f1{font-style:italic;font-size:17px;color:var(--suave);line-height:1.5}
+  .abre .f2{font-style:italic;font-size:22px;line-height:1.4;margin-top:14px}
+  .linha{position:relative;padding-left:26px}
+  .linha:before{content:"";position:absolute;left:6px;top:6px;bottom:0;width:1px;background:var(--linha)}
+  .item{position:relative;padding-bottom:64px}
+  .item:before{content:"";position:absolute;left:-24px;top:6px;width:9px;height:9px;border-radius:50%;background:var(--tinta)}
+  .data{font-family:"JetBrains Mono",monospace;font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--suave);margin-bottom:22px}
+  .item .pol{width:min(100%,400px);padding-bottom:44px;margin-bottom:26px}
+  .item .pol img{display:block;width:100%;height:auto}
+  .texto p{font-size:18px;line-height:1.65;margin-bottom:12px}
+  .video{position:relative;aspect-ratio:16/9;margin-bottom:24px;background:#000}
+  .video iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+  .vazio .texto p{color:var(--suave);font-style:italic}
+  .fim{text-align:center;color:var(--suave);font-style:italic;padding-top:8px}
+  .fim .ass{font-family:Caveat,cursive;font-style:normal;font-size:30px;color:var(--tinta);margin-top:18px}
 </style>
 </head>
 <body>
 <main id="m">
-  <div class="tag">Formatura · Terceirão 2026</div>
-  <h1>Mi<em>mi</em></h1>
-  <div class="sub">esse cantinho é seu</div>
-  <form id="f">
-    <input id="s" type="password" placeholder="senha" autocomplete="current-password" autofocus>
-    <button>abrir</button>
-    <div class="erro" id="e"></div>
-  </form>
+  <div class="porta">
+    <figure class="pol" style="--r:-3deg"><span class="fita"></span><div class="vazia">ainda revelando</div><div class="leg">Yasmim · 2026</div></figure>
+    <form id="f">
+      <input id="s" type="password" placeholder="*********!" autocomplete="current-password">
+      <button>entrar</button>
+      <div class="erro" id="e"></div>
+    </form>
+  </div>
 </main>
 <script>
-const D = {"s": "jtgM5Lk7R8BFoD0JZp+pkA==", "i": "XUFk1CcKJv5MqyPu", "c": "HpOyWCm5hZ6z94698NPvfklMKRRhV7zEZVSaYsI3M2+m4FK4kFyELq87GUV7xG+WQkrnonOUVgu4CwqeTmJ8hbc9tfeDpfufhWgrvyB1344Y2/1pOnjeH3VyjtsQyDN++Rl9eXHaG+/0ArpHKyWdv01YIZbCKOeT9JGCiypjCGuREMybCbjDU2zcjLBJmA4KrTqysm8vtT/MQNaQQaMiuet8dX10xNM5zGtLhqD/bXuliUf9ixAotOvMsOP0pGBiLkbax3N8Wti9hOrgaR6Ph0EW7Qjq6KAp8k6hWT3HBlhLybe4Zem3tGFH2ja2J5YR059JqvRdjaEIaDqbrjJwVk/fQ7C/s/dzqYIbXeYNqCx+8xkOGRjIIDmxU80R+ujwvrk1mxsgMK0Z30egtwJ7Nj+UkHVN+nEcJyu/B7H9E8IF05VxMSeUNXIlLyaF7ld1kPNmq+P8uI65Z+WUlylSGOV7iemLWrccaj95hCavG4Za1hMcibWnDXNXL3qyLMHYSyrAM7kYASFr2wS2BUDfWG/DfxFui+KWQGOAeucU2KqoZwc5uEDZOeYlutLXXx4Gts3tYX8byzwZhkqq+Id4180oMUEE1o2BWDGreZEOtTHtatQwLTfmM31bkua5ktG74qAW8p/7Qu0gSJrMc9gDDvWXRQjPWg==", "n": 250000};
+const D = {"s": "VWP2s5ajExB1EkSGy4WTyQ==", "i": "18yNQG+Z17krq6ur", "c": "vbZVGggnPbQdtsjjc7p5dq1UjeQ+2gnNQxW+5DyAwgVhYaufi2lvc+MDoSC0k25B0NmVp8pykOGcOANe3lYRbiJ2Vm502ia/aAJtgAj6t+NKIFiGgQjlFC9cTE8VsK41IsVi+qKBROphWc0ASLWg6U7Cm7YZOlTIEefIXG0shyXptiRSJd9Bvoip2QIO7kNWVjntYFYKKbRYsrAiJVm4/R3xbEvTUw7qGoYZq8L6OSU6k6QDdknnKTJllHONDqC3y2ygiXDr/K0sRcUx0EaVZetb9JtK1RkIVZlSrzhJ0yVj+maUixdtmR1M2tZsy/MgWbltLtSQ/HEZfajnFsCt0LiHDabb18J4K7YfXLLE3iAufe9qF98q+uyr/MYr5XsIw32EPR+8lR2QxwA1QSPAvP9BUAmBfyTsnusiL5+7t2nGo0Oi24ejIRK85cZzi7d2nRonSv6bZJxNDWSBhazq6oNDvjjqFdAt5l3rEo7/kKCmL+GZaZjXQlDUf0X3KDOr7AI1OeRTJZu+/vq+XDNfoE7RaIMkq3+JPl/084lep+DuOVJ3NYxIau1Cj1ZEkQsIbSWEPnV2yigiqOD4xjc2Yu+U", "n": 250000};
 const u = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
 async function abrir(senha){
   const k0 = await crypto.subtle.importKey("raw", new TextEncoder().encode(senha), "PBKDF2", false, ["deriveKey"]);
   const k = await crypto.subtle.deriveKey({name:"PBKDF2", salt:u(D.s), iterations:D.n, hash:"SHA-256"}, k0, {name:"AES-GCM", length:256}, false, ["decrypt"]);
   const p = await crypto.subtle.decrypt({name:"AES-GCM", iv:u(D.i)}, k, u(D.c));
   document.getElementById("m").innerHTML = new TextDecoder().decode(p);
+  window.scrollTo(0, 0);
 }
 document.getElementById("f").addEventListener("submit", async ev => {
   ev.preventDefault();
   const s = document.getElementById("s").value, e = document.getElementById("e");
   e.textContent = "abrindo…";
   try { await abrir(s); try { localStorage.setItem("mimi", s); } catch(_){} }
-  catch(_) { e.textContent = "senha errada, tenta de novo"; }
+  catch(_) { e.textContent = "não é essa. tenta de novo."; }
 });
 (async () => { let s = null; try { s = localStorage.getItem("mimi"); } catch(_){}
   if (s) { try { await abrir(s); } catch(_){ try { localStorage.removeItem("mimi"); } catch(__){} } } })();
