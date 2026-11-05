@@ -13,8 +13,8 @@
   html{background:var(--creme);overflow-x:hidden}
   body{background:var(--creme);color:var(--tinta);font-family:Fraunces,Georgia,serif;
        background-image:radial-gradient(circle at 10% 0%,#EFE7DA 0,transparent 50%),radial-gradient(circle at 100% 100%,#ECE4D6 0,transparent 45%)}
-  /* Respiro final permite que o leque inteiro alcance o ponto de leitura. */
-  main{max-width:560px;margin:0 auto;padding:40px 16px max(80px,40vh);overflow-x:hidden}
+  /* Respiro fixo: uma janela alta não deve criar uma página vazia. */
+  main{max-width:560px;margin:0 auto;padding:40px 16px 80px;overflow-x:hidden}
   .novas{position:sticky;top:10px;z-index:5;display:flex;justify-content:space-between;align-items:center;gap:10px;
          background:var(--tinta);color:var(--creme);border-radius:999px;padding:9px 10px 9px 18px;font-size:14px;font-style:italic;
          box-shadow:0 8px 20px -10px rgba(0,0,0,.5);margin-bottom:28px}
@@ -41,9 +41,9 @@
   .item[data-lado] .pol{transform:rotate(var(--inclinacao))}
   .item[data-lado="-1"]{--inclinacao:2deg}
   .item[data-lado="1"]{--inclinacao:-2deg}
-  .item[data-lado] .pol.peq{transform:rotate(calc(var(--inclinacao) * 1.5))}
   .item.central{width:100%;text-align:center;padding-top:16px}
   .item.central .data{justify-content:center;background:var(--creme);width:max-content;margin:0 auto 20px;padding:0 12px}
+  .item.central .em-breve{position:relative;background:var(--creme);width:max-content;margin:auto;padding:0 12px}
   .data{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--suave);margin-bottom:20px;display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center}
   .tag{background:var(--tinta);color:var(--creme);border-radius:999px;padding:2px 8px;font-size:10px;letter-spacing:.1em}
   .pol{background:var(--branco);padding:12px 12px 40px;box-shadow:0 10px 24px -12px rgba(40,28,20,.45),0 1px 2px rgba(40,28,20,.15);
@@ -51,8 +51,6 @@
   .pol .fita{position:absolute;top:-11px;left:50%;width:90px;height:24px;transform:translateX(-50%) rotate(-4deg);background:var(--fita)}
   .pol img{display:block;width:100%;height:auto;filter:sepia(.25) brightness(1.15) contrast(.8) saturate(.6);opacity:.25;transition:filter 1.6s ease,opacity 1.2s ease}
   .pol.revelada img{filter:none;opacity:1}
-  .pol.peq{width:62%;margin-left:30%;margin-top:-30px;padding-bottom:26px}
-  .item[data-lado="-1"] .pol.peq{margin-left:8%;margin-right:auto}
   .texto p{font-size:18px;line-height:1.6}
   .video{position:relative;aspect-ratio:16/9;margin-bottom:22px;border-radius:4px;overflow:hidden;background:#2a2622 url(img/4.jpg) center/cover}
   .video:after{content:"";position:absolute;inset:0;background:rgba(28,26,24,.45)}
@@ -66,7 +64,7 @@
   @media (min-width:700px){main{max-width:792px}}
   @media (max-width:560px){
     .item .pol{padding:7px 7px 25px}
-    .item .pol.peq{padding-bottom:18px}
+    .item .pol.extra{padding-bottom:18px}
     .item .pol .fita{width:62px;height:20px}
     .texto p{font-size:16px;line-height:1.5}
     .data{letter-spacing:.1em;font-size:10px}
@@ -76,6 +74,20 @@
     .pol img{transition:none;filter:none;opacity:1}
     .ano-t{opacity:1;transform:none;transition:none}
   }
+
+  /* Cada lembrança ocupa o papel inteiro; fotos guardam sua margem do tronco. */
+  .item[data-lado]{left:0;transform:none;width:100%;padding:0;text-align:left}
+  .item[data-lado] > .data,.item[data-lado] > .pol,.item[data-lado] > .texto,
+  .item[data-lado] > .video{position:absolute;margin:0}
+  .item[data-lado] > .pol{transform:rotate(var(--rotacao));margin:0}
+  .item[data-lado] > .data{padding:0;justify-content:flex-start}
+  .item[data-lado] .pol.extra{margin:0;padding-bottom:26px}
+  .item[data-lado] .pol.extra .fita{display:none}
+  .pol{opacity:0;transition:opacity .45s ease}
+  .pol.revelada{opacity:1}
+  .pol.extra{z-index:1}
+  @media(max-width:560px){.item[data-lado] .pol.extra{padding-bottom:18px}}
+  @media(prefers-reduced-motion:reduce){.pol{transition:none}}
 </style>
 </head>
 <body>
@@ -97,12 +109,14 @@
     <section class="item">
       <div class="data">dezembro</div>
       <figure class="pol" style="--r:2deg"><span class="fita"></span><img src="img/2.jpg" alt=""></figure>
+      <figure class="pol extra"><img src="img/4.jpg" alt=""></figure>
     </section>
     <h2 class="ano-t" id="a2012">2012</h2>
     <section class="item" id="n">
       <div class="data">primeiro dia de aula <span class="tag">nova</span></div>
       <figure class="pol" style="--r:-1.5deg"><span class="fita"></span><img src="img/3.jpg" alt=""></figure>
-      <figure class="pol peq" style="--r:4deg"><img src="img/5.jpg" alt=""></figure>
+      <figure class="pol extra" style="--r:4deg"><img src="img/5.jpg" alt=""></figure>
+      <figure class="pol extra"><img src="img/0.jpg" alt=""></figure>
       <div class="texto"><p>Você pediu para repetir a foto. Esta ficou.</p></div>
     </section>
     <h2 class="ano-t" id="a2016">2016</h2>
@@ -115,6 +129,7 @@
     <section class="item">
       <div class="data">terceirão <span class="tag">nova</span></div>
       <figure class="pol" style="--r:2deg"><span class="fita"></span><img src="img/0.jpg" alt=""></figure>
+      <figure class="pol extra"><img src="img/3.jpg" alt=""></figure>
     </section>
     <section class="item">
       <div class="data" id="depois">depois</div>
@@ -126,8 +141,11 @@
 <div class="lb" id="lb"><span>fechar ✕</span><img id="lbi" alt=""></div>
 <script>
 // Ajustes da caneta, em pixels CSS; frequência de falhas por pequeno trecho.
-const LARGURA_MIN = 3.4;
-const LARGURA_MAX = 6.8;
+const LARGURA_INICIO = 2.3;
+const LARGURA_FIM = 10;
+const EXTRA_ESCALA = [.36, .46]; // Fração do papel útil (descontado o corredor do tronco).
+const RAIZ_EXTRA_COMPRIMENTO = [45, 75]; // Queda mínima antes da foto extra.
+const LARGURA_MAX = LARGURA_FIM * 1.15;
 const AMPLITUDE_DESVIO = 22;
 // Envelope conservador da curva inteira + meia espessura + folga visível.
 const FOLGA_ITEM = AMPLITUDE_DESVIO + LARGURA_MAX/2 + 17;
@@ -150,7 +168,7 @@ const ALTURA_LEQUE = 150;
   const itens = [...linha.querySelectorAll('.item')];
   itens.forEach((item, i) => {
     if (item.querySelector('#depois')) item.classList.add('central');
-    else item.dataset.lado = i % 2 ? '1' : '-1';
+    else item.dataset.lado = (i % 2 ? 1 : -1) * (aleatorio(903+i) < .32 ? -1 : 1);
   });
   linha.querySelectorAll('.ano-t').forEach(ano => {
     const numero = document.createElement('span');
@@ -180,9 +198,96 @@ const ALTURA_LEQUE = 150;
   }
   let altura = 1, fim = 1, topo = 0, marcas = [], caminhos = [], pausasAnos = [];
   let ponta = 0, alvo = 0, maximo = 0, seco = 0, umidade = 0;
-  let geometriaSuja = true, raf = 0, anterior = 0, leque = [];
+  let geometriaSuja = true, raf = 0, vigia = 0, anterior = 0, leque = [];
   const PASSO = .7, MARGEM = 0;
-  let LARGURA_CANVAS = 1;
+  let LARGURA_CANVAS = 1, obstaculos = [], maturidade = 1;
+  const todosRamos = () => marcas.flatMap(m => m.ramos || []);
+  function caixaLocal(el, margem = 0) {
+    const r = el.getBoundingClientRect(), papel = linha.getBoundingClientRect();
+    return {left:r.left-papel.left-margem, right:r.right-papel.left+margem,
+      top:r.top-papel.top-margem, bottom:r.bottom-papel.top+margem};
+  }
+  function livre(fio) {
+    return fio.pontos.every(p => p.x > 4 && p.x < LARGURA_CANVAS-4 &&
+      !obstaculos.some(r => p.x >= r.left && p.x <= r.right && p.y >= r.top && p.y <= r.bottom));
+  }
+  function gavinhaSegura(curva, sal, largura) {
+    // Todos os pontos da curva, incluindo a espiral, contra caixas com margem.
+    for (const t of [.42, .60, .26, .76]) {
+      const base = curva(t), p = curva(t+.01), direcao = Math.atan2(p.y-base.y, p.x-base.x);
+      for (const a of [1.1, -1.1, 1.9, -1.9, 2.7, -2.7]) {
+        const fio = enrolar(base, direcao+a, sal, largura);
+        if (livre(fio)) return fio;
+      }
+    }
+    return null; // Sem espaço: não desenhar uma gavinha colidindo com a legenda.
+  }
+  function dispor() {
+    const w = LARGURA_CANVAS, util = w-2*FOLGA_ITEM-2*RESPIRO_BORDA;
+    itens.forEach((item, i) => {
+      const lado = Number(item.dataset.lado || 0);
+      if (!lado) return;
+      const sal = 4000+i*37, coluna = util/2;
+      const data = item.querySelector('.data'), principal = item.querySelector('.pol:not(.extra), .video');
+      const texto = item.querySelector('.texto'), extras = [...item.querySelectorAll('.pol.extra')];
+      const pos = (el, ladoFoto, largura, y, rotacao = 0) => {
+        el.style.width = largura+'px';
+        el.style.setProperty('--rotacao', rotacao+'deg');
+        const a = Math.abs(rotacao)*Math.PI/180;
+        const proj = (Math.cos(a)*largura+Math.sin(a)*el.offsetHeight-largura)/2;
+        const x = ladoFoto < 0 ? w/2-FOLGA_ITEM-largura-proj : w/2+FOLGA_ITEM+proj;
+        el.style.left = x+'px'; el.style.top = y+'px';
+        return y+el.offsetHeight+Math.sin(a)*largura/2;
+      };
+      pos(data, lado, coluna, 0);
+      const inicio = data.offsetHeight+25;
+      // 44–52% do papel útil, limitado pela projeção rotacionada nas bordas.
+      let largura = util*misturar(.44,.52,aleatorio(sal));
+      const rotacao = misturar(-3.5,3.5,aleatorio(sal+1));
+      let fundo = pos(principal, lado, largura, inicio, rotacao);
+      for (let n = 0; n < 5; n++) {
+        const r = principal.getBoundingClientRect(), papel = linha.getBoundingClientRect();
+        if (r.left >= papel.left+RESPIRO_BORDA && r.right <= papel.right-RESPIRO_BORDA) break;
+        largura -= 4; fundo = pos(principal, lado, largura, inicio, rotacao);
+      }
+      let ocupadoTexto = inicio;
+      if (texto) {
+        const oposto = aleatorio(sal+2) < .55;
+        const y = oposto ? inicio+12 : fundo+25;
+        ocupadoTexto = pos(texto, oposto ? -lado : lado, coluna-2, y);
+        fundo = Math.max(fundo, ocupadoTexto);
+      }
+      const fimPrincipal = inicio+principal.offsetHeight;
+      let extraAnterior = null;
+      extras.forEach((extra, j) => {
+        const escala = misturar(...EXTRA_ESCALA,aleatorio(sal+8+j));
+        const sobrepor = j > 0 && aleatorio(sal+26) < .7;
+        const ladoExtra = j === 0 || sobrepor ? -lado : lado;
+        const queda = misturar(...RAIZ_EXTRA_COMPRIMENTO,aleatorio(sal+12+j));
+        // A segunda extra desce em outro lado: pode sobrepor a faixa vertical da primeira.
+        const y = sobrepor ? extraAnterior.y+extraAnterior.altura*.80 :
+          Math.max(fimPrincipal+queda+j*42, ocupadoTexto+40);
+        const rot = misturar(-6,6,aleatorio(sal+18+j));
+        let ew = util*escala;
+        let ef = pos(extra, ladoExtra, ew, y, rot);
+        for (let n = 0; n < 8; n++) {
+          const r = extra.getBoundingClientRect(), papel = linha.getBoundingClientRect();
+          if (r.left >= papel.left+RESPIRO_BORDA && r.right <= papel.right-RESPIRO_BORDA) break;
+          ew -= 4; ef = pos(extra, ladoExtra, ew, y, rot);
+        }
+        extra.dataset.lado = ladoExtra;
+        extra.dataset.origem = inicio+principal.offsetHeight*.35+j*38;
+        if (sobrepor) {
+          const r = extra.getBoundingClientRect(), papel = linha.getBoundingClientRect();
+          const espaco = ladoExtra < 0 ? r.left-papel.left-RESPIRO_BORDA : papel.right-r.right-RESPIRO_BORDA;
+          extra.style.left = (parseFloat(extra.style.left)+ladoExtra*Math.min(12,Math.max(0,espaco)))+'px';
+        }
+        extraAnterior = {y,altura:extra.offsetHeight};
+        fundo = Math.max(fundo, ef);
+      });
+      item.style.height = Math.ceil(fundo+48)+'px';
+    });
+  }
 
   function xEm(y) {
     const frequencia = y / 145 + ruido(y / 440, 51) * .8;
@@ -198,7 +303,9 @@ const ALTURA_LEQUE = 150;
       const curva = Math.abs(funcao(Math.min(final, yy + 4)) - 2*x + funcao(Math.max(inicio, yy - 4)));
       const parada = fio < 0 ? marcas.reduce((maior, m) => Math.max(maior, Math.exp(-Math.pow((yy-m.y)/12, 2))), 0) : 0;
       const pressao = limitar(.43 + .25*ruido(yy / 83, 501) + curva*.7 + parada*.36, 0, 1);
-      const largura = misturar(LARGURA_MIN, LARGURA_MAX, pressao);
+      const tempo = limitar(yy/maturidade, 0, 1);
+      const base = misturar(LARGURA_INICIO, LARGURA_FIM, .72*tempo + .28*tempo*tempo);
+      const largura = base * (.85 + .30*pressao);
       const id = Math.floor(yy / 2.4) + (fio + 1)*12001;
       const falha = aleatorio(id + 1401) < FREQUENCIA_FALHAS && parada < .2;
       const progresso = fio < 0 ? 0 : (yy - inicio)/(final - inicio);
@@ -250,42 +357,52 @@ const ALTURA_LEQUE = 150;
         y:fimHaste.y+v.y*avancar+n.y*curvar};
     }, largura, sal+8, false, .15);
   }
-  function criarRamo(marca, item, indice) {
+  function criarRamo(marca, item, indice, extra = null, ordem = 0) {
     if (!marca.lado) return null;
-    const foto = item.querySelector('.pol'), destino = foto || item.querySelector('.video');
+    const foto = extra || item.querySelector('.pol:not(.extra)'), destino = foto || item.querySelector('.video');
+    if (!destino) return null;
+    const lado = extra ? Number(extra.dataset.lado) : marca.lado;
     const r = destino.getBoundingClientRect();
     // Centro da caixa rotacionada = centro local da foto. Chega à borda,
     // logo abaixo da fita, sem deslocar a foto nem reduzir a folga do eixo.
-    const angulo = foto ? parseFloat(getComputedStyle(item).getPropertyValue('--inclinacao'))*Math.PI/180 : 0;
-    const dx = -marca.lado*(destino.offsetWidth/2-1), dy = -destino.offsetHeight/2+17;
+    const angulo = foto ? parseFloat(getComputedStyle(foto).getPropertyValue('--rotacao'))*Math.PI/180 : 0;
+    const dx = -lado*(destino.offsetWidth/2-1), dy = -destino.offsetHeight/2+17;
     const chegada = {x:r.left+r.width/2-linha.getBoundingClientRect().left+dx*Math.cos(angulo)-dy*Math.sin(angulo),
       y:r.top+r.height/2+scrollY-topo+dx*Math.sin(angulo)+dy*Math.cos(angulo)};
-    const y = marca.y-13, origem = {x:xEm(y), y};
+    const y = extra ? item.offsetTop+Number(extra.dataset.origem) : marca.y-13;
+    const origem = {x:xEm(y), y};
     const tangente = (xEm(y+2)-xEm(y-2))/4, queda = Math.max(18, (chegada.y-y)*.5);
-    const b = {x:origem.x+tangente*queda, y:y+queda};
-    const c = {x:chegada.x-marca.lado*18, y:chegada.y-8};
-    const sal = 6001+indice*113;
+    const b = {x:origem.x+ (extra ? limitar(tangente*queda,-10,10)+lado*8 : tangente*queda), y:y+queda};
+    const c = {x:chegada.x-lado*(extra ? 38 : 18), y:chegada.y-8};
+    const sal = 6001+indice*113+ordem*977;
     const curva = t => {
       const p = bezier(origem, b, c, chegada, t);
-      p.y += ruido(t*3, sal)*Math.sin(Math.PI*t)**2*1.1;
+      p.y += ruido(t*3, sal)*Math.sin(Math.PI*t)**2*(extra ? 9 : 1.1);
       return p;
     };
     const local = caminhos[0][Math.max(0, Math.floor(y/PASSO))];
-    const principal = filamento(curva, local.largura*RAMO_ESPESSURA, sal);
-    const t = .44+aleatorio(sal+1)*.14, base = curva(t), proximo = curva(t+.01);
-    const direcao = Math.atan2(proximo.y-base.y, proximo.x-base.x);
-    const lado = aleatorio(sal+2) < .5 ? -1 : 1;
-    const gavinha = enrolar(base, direcao+lado*(.9+aleatorio(sal+3)*.35), sal+10);
-    const partes = [{...principal, de:0, ate:.76}, {...gavinha, de:.32, ate:1}];
-    if (aleatorio(sal+4) < CHANCE_GALHINHO) {
-      const inicio = curva(.7), a = direcao-lado*.9, tamanho = 7+aleatorio(sal+5)*4;
-      partes.push({...filamento(t => ({x:inicio.x+Math.cos(a)*tamanho*t,
-        y:inicio.y+Math.sin(a)*tamanho*t}), 1.3, sal+30), de:.62, ate:.9});
+    const principal = filamento(curva, local.largura*RAMO_ESPESSURA*(extra ? .68 : 1), sal);
+    const gavinha = gavinhaSegura(curva, sal+10, Math.min(2.2,local.largura*.42));
+    const partes = [{...principal, de:0, ate:.76}];
+    if (gavinha) {
+      partes.push({...gavinha, de:.32, ate:1});
+      if (aleatorio(sal+6) < .6) partes[1].broto = 1.5+aleatorio(sal+7)*.7;
     }
-    if (aleatorio(sal+6) < .6) partes[1].broto = 1.5+aleatorio(sal+7)*.7;
-    return {partes, duracao:misturar(...RAMO_DURACAO, aleatorio(sal+8)),
-      inicio:null, progresso:0, seco:false, item};
+    if (aleatorio(sal+4) < CHANCE_GALHINHO) {
+      const inicio = curva(.7), proximo = curva(.71);
+      const direcao = Math.atan2(proximo.y-inicio.y, proximo.x-inicio.x);
+      for (const ladoBroto of [-1,1]) {
+        const a = direcao+ladoBroto*1.1, tamanho = 7+aleatorio(sal+5)*4;
+        const fio = filamento(t => ({x:inicio.x+Math.cos(a)*tamanho*t,
+          y:inicio.y+Math.sin(a)*tamanho*t}), Math.min(1.3,local.largura*.35), sal+30);
+        if (livre(fio)) { partes.push({...fio, de:.62, ate:.9}); break; }
+      }
+    }
+    return {partes, duracao:misturar(...RAMO_DURACAO, aleatorio(sal+8))*(extra ? 1.5 : 1),
+      inicio:null, progresso:0, seco:false, item, destino, extra:!!extra, ordem,
+      gatilho:Math.max(marca.y,y)};
   }
+
   function desenharFilamento(ctx, fio, progresso) {
     const limite = fio.comprimento*limitar(progresso, 0, 1);
     ctx.strokeStyle = ctx.fillStyle = '#1C1A18';
@@ -312,16 +429,16 @@ const ALTURA_LEQUE = 150;
   }
   function crescer(agora) {
     let ativo = false, ultimoInicio = -Infinity;
-    marcas.forEach(m => {
-      const ramo = m.ramo;
-      if (!ramo) return;
-      if (ponta >= m.y && ramo.inicio === null) ramo.inicio = Math.max(agora, ultimoInicio+140);
+    todosRamos().forEach(ramo => {
+      const pai = ramo.pai;
+      if (ponta >= ramo.gatilho && ramo.inicio === null && (!pai || pai.progresso >= 1)) {
+        ramo.inicio = Math.max(agora+(ramo.extra ? ramo.ordem*160 : 0), ultimoInicio+140);
+      }
       if (ramo.inicio !== null) ultimoInicio = ramo.inicio;
       if (movimento.matches) ramo.progresso = 1;
       else if (ramo.inicio !== null) ramo.progresso = Math.max(ramo.progresso, limitar((agora-ramo.inicio)/ramo.duracao, 0, 1));
       if (ramo.progresso >= .76 && !ramo.revelado) {
-        ramo.item.querySelectorAll('.pol').forEach(pol => pol.classList.add('revelada'));
-        ramo.revelado = true;
+        ramo.destino.classList.add('revelada'); ramo.revelado = true;
       }
       if (ramo.inicio !== null && ramo.progresso < 1) ativo = true;
     });
@@ -340,34 +457,17 @@ const ALTURA_LEQUE = 150;
     fim = Math.max(1, altura - ALTURA_LEQUE);
     LARGURA_CANVAS = retangulo.width;
     linha.style.setProperty('--folga', `${FOLGA_ITEM}px`);
-    // xEm permanece dentro de centro ± AMPLITUDE_DESVIO em qualquer altura.
-    // Inclui também a projeção real das fotos e fitas após a rotação.
-    itens.forEach(item => {
-      const lado = Number(item.dataset.lado || 0);
-      if (!lado) return;
-      const larguraBase = LARGURA_CANVAS/2-FOLGA_ITEM-RESPIRO_BORDA;
-      let projecao = 0;
-      for (let tentativa = 0; tentativa < 8; tentativa++) {
-        item.style.setProperty('--desvio', `${lado*projecao}px`);
-        item.style.setProperty('--largura-item', `${larguraBase-projecao}px`);
-        const caixa = item.getBoundingClientRect();
-        const excesso = Math.max(0, ...[...item.querySelectorAll('.pol, .fita')].map(el => {
-          const r = el.getBoundingClientRect();
-          return lado < 0 ? r.right-caixa.right : caixa.left-r.left;
-        }));
-        if (excesso <= projecao) break;
-        // Margem extra para arredondamento de layout e sombra da foto.
-        projecao = excesso+4;
-      }
-    });
+    dispor();
     altura = linha.offsetHeight;
     fim = Math.max(1, altura - ALTURA_LEQUE);
+    // Em 2026 o tronco já atingiu a espessura adulta, inclusive com fotos extras.
+    maturidade = linha.querySelector('#a2026')?.offsetTop + 44 || fim;
     const anteriores = marcas;
     marcas = itens.map((item, i) => {
       const data = item.querySelector('.data');
       const y = data.getBoundingClientRect().top + scrollY - topo + 9.5;
       const lado = Number(item.dataset.lado || 0);
-      return {y, lado, anterior:anteriores[i]?.ramo};
+      return {y, lado, anteriores:anteriores[i]?.ramos};
     });
     pausasAnos = [...linha.querySelectorAll('.ano-t')].map(ano => {
       // offsetTop ignora a translação transitória da animação de entrada.
@@ -376,14 +476,19 @@ const ALTURA_LEQUE = 150;
     altura = linha.offsetHeight;
     fim = Math.max(1, altura - ALTURA_LEQUE);
     caminhos = [amostrar(xEm, 0, fim)];
+    obstaculos = [...linha.querySelectorAll('.data,.texto,.pol,.video,.ano-t')].map(el => caixaLocal(el, 7));
     marcas.forEach((marca, i) => {
       marca.ramo = criarRamo(marca, itens[i], i);
-      if (marca.ramo && marca.anterior) {
-        marca.ramo.inicio = marca.anterior.inicio;
-        marca.ramo.progresso = marca.anterior.progresso;
-        marca.ramo.revelado = marca.anterior.revelado;
-      }
-      delete marca.anterior;
+      marca.ramos = marca.ramo ? [marca.ramo, ...[...itens[i].querySelectorAll('.pol.extra')]
+        .map((foto,j) => criarRamo(marca,itens[i],i,foto,j+1))] : [];
+      marca.ramos.forEach((ramo,j) => {
+        const antes = marca.anteriores?.[j];
+        if (antes) {
+          ramo.inicio = antes.inicio; ramo.progresso = antes.progresso; ramo.revelado = antes.revelado;
+        }
+        if (ramo.extra) ramo.pai = marca.ramo;
+      });
+      delete marca.anteriores;
       marca.seco = false;
     });
     const lequeAnterior = leque;
@@ -464,9 +569,11 @@ const ALTURA_LEQUE = 150;
       if (!marca.seco && ponta >= marca.y+8) {
         marcos(tinta, marca, i); marca.seco = true;
       }
-      if (marca.ramo && !marca.ramo.seco && marca.ramo.progresso >= 1) {
-        desenharCrescimento(tinta, marca.ramo); marca.ramo.seco = true;
-      }
+      marca.ramos.forEach(ramo => {
+        if (!ramo.seco && ramo.progresso >= 1) {
+          desenharCrescimento(tinta, ramo); ramo.seco = true;
+        }
+      });
     });
     leque.forEach(fio => {
       if (!fio.seco && fio.progresso >= 1) { desenharCrescimento(tinta, fio); fio.seco = true; }
@@ -476,7 +583,7 @@ const ALTURA_LEQUE = 150;
     trecho(contexto, seco, ponta, true);
     marcas.forEach((marca, i) => {
       if (!marca.seco) marcos(contexto, marca, i);
-      if (marca.ramo && !marca.ramo.seco) desenharCrescimento(contexto, marca.ramo);
+      marca.ramos.forEach(ramo => { if (!ramo.seco) desenharCrescimento(contexto, ramo); });
     });
     leque.forEach(fio => { if (!fio.seco) desenharCrescimento(contexto, fio); });
     if (umidade > .002 && ponta > 0 && ponta < fim && !movimento.matches && !pausasAnos.some(pausa => ponta >= pausa.de && ponta <= pausa.ate)) {
@@ -492,12 +599,18 @@ const ALTURA_LEQUE = 150;
     }
   }
   function animar(agora) {
+    cancelAnimationFrame(raf);
+    clearTimeout(vigia);
+    vigia = 0;
     raf = 0;
     if (document.hidden) return;
     const quadros = anterior ? limitar((agora-anterior)/16.667, .25, 3) : 1;
     anterior = agora;
     if (geometriaSuja) medir();
-    maximo = Math.max(maximo, limitar(scrollY + innerHeight*PONTO_LEITURA-topo, 0, altura));
+    // Se todo o desenho cabe na janela, também precisa terminar sem rolagem.
+    const leitura = topo+altura <= scrollY+innerHeight ? altura :
+      limitar(scrollY + innerHeight*PONTO_LEITURA-topo, 0, altura);
+    maximo = Math.max(maximo, leitura);
     alvo = movimento.matches ? altura : Math.min(maximo, altura);
     const antes = ponta;
     if (movimento.matches) ponta = alvo;
@@ -519,7 +632,12 @@ const ALTURA_LEQUE = 150;
     else anterior = 0;
   }
   function solicitarQuadro() {
-    if (!raf && !document.hidden) raf = requestAnimationFrame(animar);
+    if (!raf && !document.hidden) {
+      raf = requestAnimationFrame(animar);
+      // O tempo virtual do Chrome pode avançar sem entregar quadros de pintura.
+      // Ambos os agendamentos passam pelo mesmo relógio e cancelam o outro.
+      vigia = setTimeout(() => animar(performance.now()), 100);
+    }
   }
   function invalidar() { geometriaSuja = true; solicitarQuadro(); }
   window.addEventListener('scroll', () => {
@@ -536,7 +654,7 @@ const ALTURA_LEQUE = 150;
   if (document.fonts) document.fonts.ready.then(invalidar);
   movimento.addEventListener('change', invalidar, {passive:true});
   document.addEventListener('visibilitychange', () => {
-    if (document.hidden) { cancelAnimationFrame(raf); raf = 0; anterior = 0; }
+    if (document.hidden) { cancelAnimationFrame(raf); clearTimeout(vigia); vigia = 0; raf = 0; anterior = 0; }
     else invalidar();
   }, {passive:true});
 
