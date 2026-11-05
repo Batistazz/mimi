@@ -27,22 +27,13 @@
   .anos{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;margin-bottom:34px;scrollbar-width:none}
   .anos a{flex:none;font-family:"JetBrains Mono",monospace;font-size:12px;color:var(--suave);text-decoration:none;border:1px solid var(--linha);border-radius:999px;padding:5px 12px}
   .linha{position:relative;isolation:isolate;padding-left:26px;padding-bottom:160px}
-  .linha-viva{position:absolute;inset:0;width:100%;height:100%;z-index:-1;pointer-events:none;overflow:visible}
-  .linha-viva path{fill:none;stroke-width:1.15;stroke-linecap:round}
-  .linha-futuro{stroke:var(--linha);stroke-dasharray:3 7}
-  .linha-tinta{stroke:var(--tinta)}
-  .agora-halo{fill:var(--tinta);opacity:.08}
-  .agora{fill:var(--tinta)}
-  .particula{fill:var(--tinta);opacity:.25}
+  /* Faixa estreita em alta resolução: evita um bitmap da largura da página. */
+  .linha-caneta{position:absolute;left:-12px;top:0;width:150px;height:100%;z-index:-1;pointer-events:none}
   .ano-t{opacity:0;transform:translateY(12px);transition:opacity .7s ease,transform .7s ease}
   .ano-t.visivel{opacity:1;transform:translateY(0)}
   .ano-t{position:relative;font-family:Fraunces,serif;font-weight:300;font-size:44px;line-height:1;margin:0 0 28px;letter-spacing:-.02em}
   .ano-t:before{content:"";position:absolute;left:-25px;top:50%;width:11px;height:1px;background:var(--linha)}
   .item{position:relative;padding-bottom:56px}
-  .item:before{content:"";position:absolute;left:var(--ponto-x,-19px);top:9.5px;width:9px;height:9px;border-radius:50%;border:1px solid var(--tinta);background:var(--creme);transform:translate(-50%,-50%)}
-  .item.alcancado:before{background:var(--tinta)}
-  .item.pulso:before{animation:pulso-ponto .65s ease-out}
-  @keyframes pulso-ponto{0%{box-shadow:0 0 0 0 rgba(28,26,24,.24)}40%{transform:translate(-50%,-50%) scale(1.4)}100%{box-shadow:0 0 0 9px rgba(28,26,24,0);transform:translate(-50%,-50%) scale(1)}}
   .data{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--suave);margin-bottom:20px;display:flex;gap:10px;align-items:center}
   .tag{background:var(--tinta);color:var(--creme);border-radius:999px;padding:2px 8px;font-size:10px;letter-spacing:.1em}
   .pol{background:var(--branco);padding:12px 12px 40px;box-shadow:0 10px 24px -12px rgba(40,28,20,.45),0 1px 2px rgba(40,28,20,.15);
@@ -64,8 +55,6 @@
   @media (prefers-reduced-motion:reduce){
     .pol img{transition:none;filter:none;opacity:1}
     .ano-t{opacity:1;transform:none;transition:none}
-    .item.pulso:before{animation:none}
-    .particula{display:none}
   }
 </style>
 </head>
@@ -77,7 +66,7 @@
     <p class="f1">O mundo não se limita ao que você conhece.</p>
     <p class="f2">Nem você, ao que acredita ser.</p>
   </header>
-  <nav class="anos"><a href="#a2009">2009</a><a href="#a2012">2012</a><a href="#a2016">2016</a><a href="#a2026">2026</a><a href="#">depois</a></nav>
+  <nav class="anos"><a href="#a2009">2009</a><a href="#a2012">2012</a><a href="#a2016">2016</a><a href="#a2026">2026</a><a href="#depois">depois</a></nav>
   <div class="linha">
     <h2 class="ano-t" id="a2009">2009</h2>
     <section class="item">
@@ -108,7 +97,7 @@
       <figure class="pol" style="--r:2deg"><span class="fita"></span><img src="img/0.jpg" alt=""></figure>
     </section>
     <section class="item">
-      <div class="data">depois</div>
+      <div class="data" id="depois">depois</div>
       <p class="em-breve">em breve.</p>
     </section>
   </div>
@@ -116,178 +105,210 @@
 </main>
 <div class="lb" id="lb"><span>fechar ✕</span><img id="lbi" alt=""></div>
 <script>
-// Ajustes principais: partículas em pixels/segundo e respiração em milissegundos.
-const PARTICULAS_ATIVAS = true;
-const PARTICULAS_QUANTIDADE = 9;
-const PARTICULAS_VELOCIDADE = 18;
-const PONTO_LEITURA = .60;
-const AMPLITUDE = 7;
-const CICLO_RESPIRACAO = 8000;
-const INTERVALO_CURVA = 1000 / 12;
-const FIOS_QUANTIDADE = 6;
+// Ajustes da caneta, em pixels CSS; frequência de falhas por pequeno trecho.
+const LARGURA_MIN = 1.2;
+const LARGURA_MAX = 2.8;
+const AMPLITUDE_DESVIO = 7;
+const INERCIA = 0.10;
+const FREQUENCIA_FALHAS = 0.004;
+const TAMANHO_ACUMULO = 3.3;
+const PONTO_LEITURA = 0.62;
+const SEMENTE = 2403;
+const FIOS_QUANTIDADE = 5;
 const ALTURA_LEQUE = 150;
 
 (() => {
   const linha = document.querySelector('.linha');
   const itens = [...linha.querySelectorAll('.item')];
   const movimento = matchMedia('(prefers-reduced-motion: reduce)');
-  const ns = 'http://www.w3.org/2000/svg';
-  const criar = (nome, atributos, pai) => {
-    const el = document.createElementNS(ns, nome);
-    Object.entries(atributos).forEach(([chave, valor]) => el.setAttribute(chave, valor));
-    pai.appendChild(el);
-    return el;
-  };
-  const svg = criar('svg', {class:'linha-viva', 'aria-hidden':'true', focusable:'false'}, linha);
-  const defs = criar('defs', {}, svg);
-  const gradiente = criar('linearGradient', {id:'possibilidades', x1:'0%', y1:'0%', x2:'0%', y2:'100%'}, defs);
-  criar('stop', {offset:'0%', 'stop-color':'#1C1A18', 'stop-opacity':'.55'}, gradiente);
-  criar('stop', {offset:'100%', 'stop-color':'#1C1A18', 'stop-opacity':'0'}, gradiente);
-  const futuro = criar('path', {class:'linha-futuro'}, svg);
-  const tinta = criar('path', {class:'linha-tinta'}, svg);
-  const fios = Array.from({length:FIOS_QUANTIDADE}, () => ({
-    el:criar('path', {stroke:'url(#possibilidades)'}, svg), comprimento:0
-  }));
-  const particulas = Array.from({length:PARTICULAS_ATIVAS ? PARTICULAS_QUANTIDADE : 0}, (_, i) => ({
-    el:criar('circle', {class:'particula', r:1 + (i % 3) * .2}, svg),
-    fase:i / Math.max(1, PARTICULAS_QUANTIDADE)
-  }));
-  const halo = criar('circle', {class:'agora-halo', r:6}, svg);
-  const agora = criar('circle', {class:'agora', r:2.5}, svg);
-  let altura = 1, fim = 1, largura = 1, comprimento = 0, visivel = 0;
-  let topo = 0, marcas = [], geometriaSuja = true, leituraSuja = true;
-  let raf = 0, ultimaCurva = -Infinity, anterior = 0, tempo = 0, percurso = 0;
-  const limitar = (n, min, max) => Math.min(max, Math.max(min, n));
-  const posicionar = (el, ponto) => {
-    el.setAttribute('cx', ponto.x);
-    el.setAttribute('cy', ponto.y);
-  };
-
-  // A curva é monotônica em Y; busca binária encontra a posição exata no SVG.
-  function distanciaEmY(y) {
-    if (y <= 0) return 0;
-    if (y >= fim) return comprimento;
-    let baixo = 0, alto = comprimento;
-    for (let i = 0; i < 13; i++) {
-      const meio = (baixo + alto) / 2;
-      if (tinta.getPointAtLength(meio).y < y) baixo = meio;
-      else alto = meio;
-    }
-    return (baixo + alto) / 2;
+  const canvas = document.createElement('canvas');
+  canvas.className = 'linha-caneta';
+  canvas.setAttribute('aria-hidden', 'true');
+  linha.prepend(canvas);
+  const contexto = canvas.getContext('2d');
+  // A reserva guarda a tinta seca; apenas os últimos dez pixels continuam afilados.
+  const reserva = document.createElement('canvas');
+  const tinta = reserva.getContext('2d');
+  const limitar = (n, a, b) => Math.max(a, Math.min(b, n));
+  const misturar = (a, b, t) => a + (b - a) * t;
+  function aleatorio(n) {
+    let h = Math.imul((n | 0) ^ SEMENTE, 1597334677);
+    h = Math.imul(h ^ (h >>> 16), 2246822519);
+    return ((h ^ (h >>> 13)) >>> 0) / 4294967295;
   }
+  // Ruído de valor coerente, sem relógio: a mão nunca muda de caminho em repouso.
+  function ruido(t, sal = 0) {
+    const i = Math.floor(t), f = t - i;
+    return misturar(aleatorio(i + sal), aleatorio(i + 1 + sal), f*f*f*(f*(f*6-15)+10)) * 2 - 1;
+  }
+  let altura = 1, fim = 1, topo = 0, marcas = [], caminhos = [];
+  let ponta = 0, alvo = 0, maximo = 0, seco = 0, umidade = 0;
+  let geometriaSuja = true, raf = 0, anterior = 0;
+  const PASSO = .7, MARGEM = 12, LARGURA_CANVAS = 150;
 
+  function xEm(y) {
+    const frequencia = y / 145 + ruido(y / 440, 51) * .8;
+    let x = 8 + AMPLITUDE_DESVIO * (.74 * ruido(frequencia, 101) + .26 * ruido(y / 49, 301));
+    marcas.forEach((marca, i) => {
+      const distancia = (y - marca.y) / (22 + aleatorio(i + 820) * 17);
+      x += (4 + aleatorio(i + 920) * 3) * Math.exp(-distancia * distancia * .5);
+    });
+    return x;
+  }
+  function amostrar(funcao, inicio, final, fio = -1) {
+    const pontos = [];
+    for (let y = inicio; y < final + PASSO; y += PASSO) {
+      const yy = Math.min(y, final), x = funcao(yy);
+      const curva = Math.abs(funcao(Math.min(final, yy + 4)) - 2*x + funcao(Math.max(inicio, yy - 4)));
+      const parada = fio < 0 ? marcas.reduce((maior, m) => Math.max(maior, Math.exp(-Math.pow((yy-m.y)/12, 2))), 0) : 0;
+      const pressao = limitar(.43 + .25*ruido(yy / 83, 501) + curva*.7 + parada*.36, 0, 1);
+      const largura = misturar(LARGURA_MIN, LARGURA_MAX, pressao);
+      const id = Math.floor(yy / 2.4) + (fio + 1)*12001;
+      const falha = aleatorio(id + 1401) < FREQUENCIA_FALHAS && parada < .2;
+      const progresso = fio < 0 ? 0 : (yy - inicio)/(final - inicio);
+      pontos.push({y:yy, x, curva, largura:fio < 0 ? largura : largura*.48*Math.pow(1-progresso, .7),
+        alfa:(.67 + .1*ruido(yy / 17, 701))*(fio < 0 ? 1 : Math.pow(1-progresso, 1.1)), falha,
+        textura:aleatorio(id + 1901)});
+    }
+    return pontos;
+  }
   function medir() {
     const retangulo = linha.getBoundingClientRect();
-    topo = retangulo.top + window.scrollY;
+    topo = retangulo.top + scrollY;
     altura = linha.offsetHeight;
-    largura = linha.clientWidth;
     fim = Math.max(1, altura - ALTURA_LEQUE);
-    svg.setAttribute('viewBox', `0 0 ${largura} ${altura}`);
-    marcas = itens.map(item => ({
-      item, y:item.getBoundingClientRect().top + window.scrollY - topo + 9.5
-    }));
+    marcas = itens.map(item => ({y:item.getBoundingClientRect().top + scrollY - topo + 9.5}));
+    caminhos = [amostrar(xEm, 0, fim)];
+    const origem = xEm(fim), tangente = (xEm(fim)-xEm(fim-4))/4;
+    for (let i = 0; i < FIOS_QUANTIDADE; i++) {
+      const abertura = 16 + i*15 + aleatorio(i + 221)*6;
+      caminhos.push(amostrar(y => {
+        const t = (y-fim)/ALTURA_LEQUE;
+        // Derivada inicial comum; depois os futuros se abrem sem simetria perfeita.
+        return origem + tangente*ALTURA_LEQUE*t*Math.pow(1-t, 2) + abertura*t*t*(3-2*t) + ruido(t*2, 2800+i)*t*t*1.5;
+      }, fim, altura, i));
+    }
+    const dpr = window.devicePixelRatio || 1;
+    for (const superficie of [canvas, reserva]) {
+      superficie.width = Math.ceil(LARGURA_CANVAS*dpr);
+      superficie.height = Math.ceil(altura*dpr);
+      superficie.getContext('2d').setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+    // A geometria só é refeita se o papel mudar; o máximo de leitura é conservado.
+    ponta = Math.min(ponta, altura);
+    seco = 0;
     geometriaSuja = false;
   }
-
-  function desenharCurva() {
-    const fase = movimento.matches ? 0 : tempo * Math.PI * 2 / CICLO_RESPIRACAO;
-    const x = y => 7 + AMPLITUDE * Math.sin(y / 180 + fase);
-    const derivada = y => AMPLITUDE / 180 * Math.cos(y / 180 + fase);
-    let d = `M ${x(0)} 0`;
-    // Segmentos cúbicos curtos mantêm a onda suave, sem medir o layout por quadro.
-    for (let y = 0; y < fim; y += 64) {
-      const proximo = Math.min(y + 64, fim), passo = (proximo - y) / 3;
-      d += ` C ${x(y) + derivada(y)*passo} ${y+passo} ${x(proximo)-derivada(proximo)*passo} ${proximo-passo} ${x(proximo)} ${proximo}`;
-    }
-    futuro.setAttribute('d', d);
-    tinta.setAttribute('d', d);
-    comprimento = tinta.getTotalLength();
-    tinta.style.strokeDasharray = `${comprimento} ${comprimento}`;
-    marcas.forEach(marca => {
-      const ponto = tinta.getPointAtLength(distanciaEmY(marca.y));
-      marca.item.style.setProperty('--ponto-x', `${ponto.x - marca.item.offsetLeft}px`);
-    });
-    const abertura = Math.min(largura - 24, 170);
-    fios.forEach((fio, i) => {
-      const proporcao = (i + 1) / fios.length;
-      const destino = x(fim) + 12 + abertura * proporcao;
-      fio.el.setAttribute('d', `M ${x(fim)} ${fim} C ${x(fim)+derivada(fim)*38} ${fim+38} ${destino} ${fim+65} ${destino} ${altura}`);
-      fio.comprimento = fio.el.getTotalLength();
-      fio.el.style.strokeDasharray = `${fio.comprimento} ${fio.comprimento}`;
-    });
-    leituraSuja = true;
+  function carimbar(ctx, p, fator = 1) {
+    if (p.falha || p.largura < .04 || fator <= 0) return;
+    ctx.globalAlpha = p.alfa;
+    ctx.beginPath();
+    ctx.ellipse(p.x + MARGEM + (p.textura-.5)*.14, p.y,
+      Math.max(.03, p.largura*fator*.5), PASSO*.86, (p.textura-.5)*.16, 0, Math.PI*2);
+    ctx.fill();
   }
-
-  function atualizarLeitura() {
-    const y = movimento.matches ? altura : window.scrollY + window.innerHeight * PONTO_LEITURA - topo;
-    visivel = distanciaEmY(y);
-    tinta.style.strokeDashoffset = comprimento - visivel;
-    posicionar(agora, tinta.getPointAtLength(visivel));
-    posicionar(halo, tinta.getPointAtLength(visivel));
-    agora.style.display = halo.style.display = y < 0 ? 'none' : '';
-    marcas.forEach(({item, y:alturaItem}) => {
-      const passou = y >= alturaItem;
-      const estava = item.classList.contains('alcancado');
-      item.classList.toggle('alcancado', passou);
-      if (passou && !estava && !movimento.matches) item.classList.add('pulso');
-      if (!passou || movimento.matches) item.classList.remove('pulso');
-    });
-    fios.forEach(fio => {
-      // Cada fio também cresce até a altura de leitura, seguindo sua própria curva.
-      let baixo = 0, alto = fio.comprimento;
-      if (y > fim && y < altura) {
-        for (let i = 0; i < 11; i++) {
-          const meio = (baixo + alto) / 2;
-          if (fio.el.getPointAtLength(meio).y < y) baixo = meio;
-          else alto = meio;
-        }
+  function trecho(ctx, inicio, final, afilar = false) {
+    ctx.fillStyle = '#1C1A18';
+    caminhos.forEach((pontos, indice) => {
+      const base = indice ? fim : 0;
+      const de = Math.max(0, Math.floor((inicio-base)/PASSO));
+      const ate = Math.min(pontos.length, Math.ceil((final-base)/PASSO));
+      for (let i = de; i < ate; i++) {
+        const p = pontos[i];
+        if (p.y < inicio || p.y >= final) continue;
+        carimbar(ctx, p, afilar ? limitar((final-p.y)/10, .05, 1) : 1);
       }
-      const trecho = y <= fim ? 0 : y >= altura ? fio.comprimento : (baixo + alto) / 2;
-      fio.el.style.strokeDashoffset = fio.comprimento - trecho;
     });
-    leituraSuja = false;
+    ctx.globalAlpha = 1;
   }
-
-  function animar(agoraMs) {
+  function marcos(ctx) {
+    marcas.forEach((marca, indice) => {
+      if (ponta <= marca.y) return;
+      const fracao = limitar((ponta-marca.y)/8, 0, 1), x = xEm(marca.y) + MARGEM;
+      ctx.fillStyle = '#1C1A18';
+      ctx.strokeStyle = '#1C1A18';
+      ctx.lineWidth = 1.2;
+      ctx.globalAlpha = .91;
+      ctx.beginPath();
+      // Uma única volta irregular, completada e preenchida na chegada da caneta.
+      for (let j = 0; j <= Math.ceil(fracao*36); j++) {
+        const angulo = -Math.PI/2 + Math.min(j/36, fracao)*Math.PI*2;
+        const raio = TAMANHO_ACUMULO*(1 + .12*ruido(j/7, indice*71+3901));
+        const px = x + Math.cos(angulo)*raio, py = marca.y + Math.sin(angulo)*raio*.9;
+        if (!j) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+      }
+      ctx.stroke();
+      if (fracao === 1) { ctx.closePath(); ctx.fill(); }
+    });
+    ctx.globalAlpha = 1;
+  }
+  function desenhar() {
+    const novoSeco = Math.max(seco, ponta - 10);
+    trecho(tinta, seco, novoSeco);
+    seco = novoSeco;
+    contexto.clearRect(0, 0, LARGURA_CANVAS, altura);
+    contexto.drawImage(reserva, 0, 0, LARGURA_CANVAS, altura);
+    trecho(contexto, seco, ponta, true);
+    marcos(contexto);
+    if (umidade > .002 && ponta > 0 && ponta < altura && !movimento.matches) {
+      const pontas = ponta < fim ? [xEm(ponta)] : caminhos.slice(1).map(pontos => pontos[Math.min(pontos.length-1, Math.floor((ponta-fim)/PASSO))].x);
+      contexto.fillStyle = '#1C1A18';
+      contexto.globalAlpha = umidade*.19;
+      pontas.forEach(x => {
+        contexto.beginPath();
+        contexto.arc(x+MARGEM, ponta, ponta < fim ? 1.65 : .6, 0, Math.PI*2);
+        contexto.fill();
+      });
+      contexto.globalAlpha = 1;
+    }
+  }
+  function animar(agora) {
     raf = 0;
     if (document.hidden) return;
-    const delta = anterior ? Math.min(agoraMs - anterior, 100) : 0;
-    anterior = agoraMs;
-    tempo += delta;
-    if (geometriaSuja) { medir(); ultimaCurva = -Infinity; }
-    if (agoraMs - ultimaCurva >= INTERVALO_CURVA) {
-      desenharCurva();
-      ultimaCurva = movimento.matches ? Infinity : agoraMs;
+    const quadros = anterior ? limitar((agora-anterior)/16.667, .25, 3) : 1;
+    anterior = agora;
+    if (geometriaSuja) medir();
+    maximo = Math.max(maximo, limitar(scrollY + innerHeight*PONTO_LEITURA-topo, 0, altura));
+    alvo = movimento.matches ? altura : Math.min(maximo, altura);
+    const antes = ponta;
+    if (movimento.matches) ponta = alvo;
+    else {
+      const pontos = caminhos[0];
+      const local = pontos[Math.min(pontos.length-1, Math.floor(ponta/PASSO))];
+      const parada = marcas.reduce((m, p) => Math.max(m, Math.exp(-Math.pow((ponta-p.y)/11, 2))), 0);
+      const ritmo = 1/(1 + local.curva*2 + parada*.8);
+      ponta += (alvo-ponta)*(1-Math.pow(1-INERCIA*ritmo, quadros));
+      if (alvo-ponta < .08) ponta = alvo;
     }
-    if (leituraSuja) atualizarLeitura();
-    percurso += delta / 1000 * PARTICULAS_VELOCIDADE;
-    particulas.forEach(particula => {
-      const mostrar = !movimento.matches && visivel > 12;
-      particula.el.style.display = mostrar ? '' : 'none';
-      if (mostrar) {
-        // O módulo usa apenas o trecho escrito, inclusive com a página parada.
-        const distancia = (particula.fase * visivel + percurso) % visivel;
-        posicionar(particula.el, tinta.getPointAtLength(distancia));
-      }
-    });
-    if (!movimento.matches) solicitarQuadro();
+    const velocidade = (ponta-antes)/quadros;
+    umidade = movimento.matches ? 0 : velocidade > .015 ? Math.min(1, umidade+.15*quadros) : umidade*Math.pow(.86, quadros);
+    if (umidade < .002) umidade = 0;
+    desenhar();
+    // Um único relógio: dorme depois da chegada e da secagem, inclusive no leque.
+    if (ponta < alvo || umidade > 0) solicitarQuadro();
+    else anterior = 0;
   }
   function solicitarQuadro() {
     if (!raf && !document.hidden) raf = requestAnimationFrame(animar);
   }
   function invalidar() { geometriaSuja = true; solicitarQuadro(); }
-  window.addEventListener('scroll', () => { leituraSuja = true; solicitarQuadro(); }, {passive:true});
+  window.addEventListener('scroll', () => {
+    // Guarda também uma passagem rápida antes do próximo quadro de pintura.
+    maximo = Math.max(maximo, limitar(scrollY + innerHeight*PONTO_LEITURA-topo, 0, altura));
+    solicitarQuadro();
+  }, {passive:true});
   window.addEventListener('resize', invalidar, {passive:true});
-  document.querySelectorAll('img').forEach(img => img.addEventListener('load', invalidar, {passive:true}));
-  // Captura alterações de altura por fontes, imagens e orientação sem varrer o DOM.
+  document.querySelectorAll('img').forEach(img => {
+    img.addEventListener('load', invalidar, {passive:true});
+    img.addEventListener('error', invalidar, {passive:true});
+  });
   if ('ResizeObserver' in window) new ResizeObserver(invalidar).observe(linha);
   if (document.fonts) document.fonts.ready.then(invalidar);
   movimento.addEventListener('change', invalidar, {passive:true});
   document.addEventListener('visibilitychange', () => {
     if (document.hidden) { cancelAnimationFrame(raf); raf = 0; anterior = 0; }
-    else { leituraSuja = true; solicitarQuadro(); }
+    else invalidar();
   }, {passive:true});
-  itens.forEach(item => item.addEventListener('animationend', () => item.classList.remove('pulso'), {passive:true}));
 
   // As polaroids continuam a revelar e os anos aparecem uma única vez.
   const io = new IntersectionObserver(entradas => entradas.forEach(entrada => {
