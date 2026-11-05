@@ -26,15 +26,24 @@
   .abre .f2{font-style:italic;font-size:21px;line-height:1.4;margin-top:12px}
   .anos{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;margin-bottom:34px;scrollbar-width:none}
   .anos a{flex:none;font-family:"JetBrains Mono",monospace;font-size:12px;color:var(--suave);text-decoration:none;border:1px solid var(--linha);border-radius:999px;padding:5px 12px}
-  .linha{position:relative;isolation:isolate;padding-left:26px;padding-bottom:160px}
-  /* Faixa estreita em alta resolução: evita um bitmap da largura da página. */
-  .linha-caneta{position:absolute;left:-14px;top:0;width:150px;height:100%;z-index:-1;pointer-events:none;filter:drop-shadow(0 1.6px 1.2px rgba(40,28,20,.32)) drop-shadow(0 0 .6px rgba(28,26,24,.5))}
+  .linha{position:relative;isolation:isolate;padding-bottom:160px;--folga:14px}
+  .linha-caneta{position:absolute;left:0;top:0;width:100%;height:100%;z-index:-1;pointer-events:none;filter:drop-shadow(0 1.6px 1.2px rgba(40,28,20,.32)) drop-shadow(0 0 .6px rgba(28,26,24,.5))}
   .ano-t{opacity:0;transform:translateY(12px);transition:opacity .7s ease,transform .7s ease}
   .ano-t.visivel{opacity:1;transform:translateY(0)}
-  .ano-t{position:relative;font-family:Fraunces,serif;font-weight:300;font-size:44px;line-height:1;margin:0 0 28px;letter-spacing:-.02em}
-  .ano-t:before{content:"";position:absolute;left:-25px;top:50%;width:11px;height:1px;background:var(--linha)}
-  .item{position:relative;padding-bottom:56px}
-  .data{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--suave);margin-bottom:20px;display:flex;gap:10px;align-items:center}
+  .ano-t{position:relative;text-align:center;font-family:Fraunces,serif;font-weight:300;font-size:44px;line-height:1;margin:0 0 28px;letter-spacing:-.02em}
+  .ano-t span{background:var(--creme);padding:0 16px;box-decoration-break:clone;-webkit-box-decoration-break:clone}
+  .item{position:relative;width:var(--largura-item,calc(50% - var(--folga)));padding-bottom:56px;overflow-wrap:anywhere}
+  .item[data-lado="-1"]{left:calc(50% - var(--folga));transform:translateX(calc(-100% + var(--desvio,0px)));text-align:right}
+  .item[data-lado="1"]{left:calc(50% + var(--folga));transform:translateX(var(--desvio,0px));text-align:left}
+  .item[data-lado="-1"] .data{justify-content:flex-end}
+  .item[data-lado="-1"] .pol{margin-left:auto}
+  .item[data-lado] .pol{transform:rotate(var(--inclinacao))}
+  .item[data-lado="-1"]{--inclinacao:2deg}
+  .item[data-lado="1"]{--inclinacao:-2deg}
+  .item[data-lado] .pol.peq{transform:rotate(calc(var(--inclinacao) * 1.5))}
+  .item.central{width:100%;text-align:center;padding-top:16px}
+  .item.central .data{justify-content:center;background:var(--creme);width:max-content;margin:0 auto 20px;padding:0 12px}
+  .data{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--suave);margin-bottom:20px;display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center}
   .tag{background:var(--tinta);color:var(--creme);border-radius:999px;padding:2px 8px;font-size:10px;letter-spacing:.1em}
   .pol{background:var(--branco);padding:12px 12px 40px;box-shadow:0 10px 24px -12px rgba(40,28,20,.45),0 1px 2px rgba(40,28,20,.15);
        transform:rotate(var(--r,-2deg));position:relative;width:min(calc(100% - 10px),380px);margin:0 0 24px;cursor:zoom-in}
@@ -42,6 +51,7 @@
   .pol img{display:block;width:100%;height:auto;filter:sepia(.25) brightness(1.15) contrast(.8) saturate(.6);opacity:.25;transition:filter 1.6s ease,opacity 1.2s ease}
   .pol.revelada img{filter:none;opacity:1}
   .pol.peq{width:62%;margin-left:30%;margin-top:-30px;padding-bottom:26px}
+  .item[data-lado="-1"] .pol.peq{margin-left:8%;margin-right:auto}
   .texto p{font-size:18px;line-height:1.6}
   .video{position:relative;aspect-ratio:16/9;margin-bottom:22px;border-radius:4px;overflow:hidden;background:#2a2622 url(img/4.jpg) center/cover}
   .video:after{content:"";position:absolute;inset:0;background:rgba(28,26,24,.45)}
@@ -52,6 +62,15 @@
   .lb{position:fixed;inset:0;background:rgba(20,18,16,.94);display:none;align-items:center;justify-content:center;z-index:9;padding:20px}
   .lb.on{display:flex}.lb img{max-width:100%;max-height:85vh}
   .lb span{position:absolute;top:16px;right:20px;color:#eee;font-family:"JetBrains Mono",monospace;font-size:13px}
+  @media (min-width:700px){main{max-width:792px}}
+  @media (max-width:560px){
+    .item .pol{padding:7px 7px 25px}
+    .item .pol.peq{padding-bottom:18px}
+    .item .pol .fita{width:62px;height:20px}
+    .texto p{font-size:16px;line-height:1.5}
+    .data{letter-spacing:.1em;font-size:10px}
+    .video b{padding:8px;font-size:12px;width:max-content;max-width:95%;text-align:center}
+  }
   @media (prefers-reduced-motion:reduce){
     .pol img{transition:none;filter:none;opacity:1}
     .ano-t{opacity:1;transform:none;transition:none}
@@ -108,7 +127,10 @@
 // Ajustes da caneta, em pixels CSS; frequência de falhas por pequeno trecho.
 const LARGURA_MIN = 3.4;
 const LARGURA_MAX = 6.8;
-const AMPLITUDE_DESVIO = 7;
+const AMPLITUDE_DESVIO = 22;
+const FOLGA_ITEM = 14;
+const RESPIRO_BORDA = 8;
+const RAMO_COMPRIMENTO = 14;
 const INERCIA = 0.10;
 const FREQUENCIA_FALHAS = 0.004;
 const TAMANHO_ACUMULO = 6;
@@ -120,6 +142,15 @@ const ALTURA_LEQUE = 150;
 (() => {
   const linha = document.querySelector('.linha');
   const itens = [...linha.querySelectorAll('.item')];
+  itens.forEach((item, i) => {
+    if (item.querySelector('#depois')) item.classList.add('central');
+    else item.dataset.lado = i % 2 ? '1' : '-1';
+  });
+  linha.querySelectorAll('.ano-t').forEach(ano => {
+    const numero = document.createElement('span');
+    numero.textContent = ano.textContent;
+    ano.replaceChildren(numero);
+  });
   const movimento = matchMedia('(prefers-reduced-motion: reduce)');
   const canvas = document.createElement('canvas');
   canvas.className = 'linha-caneta';
@@ -144,16 +175,15 @@ const ALTURA_LEQUE = 150;
   let altura = 1, fim = 1, topo = 0, marcas = [], caminhos = [];
   let ponta = 0, alvo = 0, maximo = 0, seco = 0, umidade = 0;
   let geometriaSuja = true, raf = 0, anterior = 0;
-  const PASSO = .7, MARGEM = 12, LARGURA_CANVAS = 150;
+  const PASSO = .7, MARGEM = 0;
+  let LARGURA_CANVAS = 1;
 
   function xEm(y) {
     const frequencia = y / 145 + ruido(y / 440, 51) * .8;
-    let x = 8 + AMPLITUDE_DESVIO * (.74 * ruido(frequencia, 101) + .26 * ruido(y / 49, 301));
-    marcas.forEach((marca, i) => {
-      const distancia = (y - marca.y) / (22 + aleatorio(i + 820) * 17);
-      x += (4 + aleatorio(i + 920) * 3) * Math.exp(-distancia * distancia * .5);
-    });
-    return x;
+    const desvio = AMPLITUDE_DESVIO * (.74 * ruido(frequencia, 101) + .26 * ruido(y / 49, 301));
+    // O eixo volta suavemente ao centro para o "depois" e a abertura final.
+    const t = limitar((fim-y)/180, 0, 1);
+    return LARGURA_CANVAS/2 + desvio*t*t*(3-2*t);
   }
   function amostrar(funcao, inicio, final, fio = -1) {
     const pontos = [];
@@ -177,11 +207,27 @@ const ALTURA_LEQUE = 150;
     topo = retangulo.top + scrollY;
     altura = linha.offsetHeight;
     fim = Math.max(1, altura - ALTURA_LEQUE);
-    marcas = itens.map(item => ({y:item.getBoundingClientRect().top + scrollY - topo + 9.5}));
+    LARGURA_CANVAS = retangulo.width;
+    linha.style.setProperty('--folga', `${FOLGA_ITEM}px`);
+    // Medição em ordem: a largura de um item pode mudar a altura dos seguintes.
+    marcas = itens.map(item => {
+      const data = item.querySelector('.data');
+      const y = data.getBoundingClientRect().top + scrollY - topo + 9.5;
+      const lado = Number(item.dataset.lado || 0);
+      const x = xEm(y);
+      if (lado) {
+        const disponivel = lado < 0 ? x : LARGURA_CANVAS-x;
+        item.style.setProperty('--desvio', `${x-LARGURA_CANVAS/2}px`);
+        item.style.setProperty('--largura-item', `${Math.min(LARGURA_CANVAS*.47, disponivel-FOLGA_ITEM-RESPIRO_BORDA)}px`);
+      }
+      return {y, lado};
+    });
+    altura = linha.offsetHeight;
+    fim = Math.max(1, altura - ALTURA_LEQUE);
     caminhos = [amostrar(xEm, 0, fim)];
     const origem = xEm(fim), tangente = (xEm(fim)-xEm(fim-4))/4;
     for (let i = 0; i < FIOS_QUANTIDADE; i++) {
-      const abertura = 16 + i*15 + aleatorio(i + 221)*6;
+      const abertura = (i-(FIOS_QUANTIDADE-1)/2)*32 + (aleatorio(i + 221)-.5)*6;
       caminhos.push(amostrar(y => {
         const t = (y-fim)/ALTURA_LEQUE;
         // Derivada inicial comum; depois os futuros se abrem sem simetria perfeita.
@@ -225,6 +271,16 @@ const ALTURA_LEQUE = 150;
     marcas.forEach((marca, indice) => {
       if (ponta <= marca.y) return;
       const fracao = limitar((ponta-marca.y)/8, 0, 1), x = xEm(marca.y) + MARGEM;
+      // O ramo nasce com o marco e afina com a mesma textura/pressão da tinta.
+      if (marca.lado) {
+        const comprimento = Math.min(RAMO_COMPRIMENTO, FOLGA_ITEM);
+        for (let d = 0; d <= comprimento*fracao; d += PASSO) {
+          const t = d/comprimento;
+          carimbar(ctx, {x:x-MARGEM+marca.lado*d, y:marca.y+Math.sin(t*Math.PI)*1.2,
+            largura:misturar(LARGURA_MIN, LARGURA_MAX, .32)*Math.pow(1-t, .75),
+            alfa:.9, falha:false, textura:aleatorio(indice*101+Math.floor(d/PASSO))});
+        }
+      }
       ctx.fillStyle = '#1C1A18';
       ctx.strokeStyle = '#1C1A18';
       ctx.lineWidth = 2.4;
