@@ -28,7 +28,7 @@
   .anos a{flex:none;font-family:"JetBrains Mono",monospace;font-size:12px;color:var(--suave);text-decoration:none;border:1px solid var(--linha);border-radius:999px;padding:5px 12px}
   .linha{position:relative;isolation:isolate;padding-left:26px;padding-bottom:160px}
   /* Faixa estreita em alta resolução: evita um bitmap da largura da página. */
-  .linha-caneta{position:absolute;left:-12px;top:0;width:150px;height:100%;z-index:-1;pointer-events:none}
+  .linha-caneta{position:absolute;left:-14px;top:0;width:150px;height:100%;z-index:-1;pointer-events:none;filter:drop-shadow(0 1.6px 1.2px rgba(40,28,20,.32)) drop-shadow(0 0 .6px rgba(28,26,24,.5))}
   .ano-t{opacity:0;transform:translateY(12px);transition:opacity .7s ease,transform .7s ease}
   .ano-t.visivel{opacity:1;transform:translateY(0)}
   .ano-t{position:relative;font-family:Fraunces,serif;font-weight:300;font-size:44px;line-height:1;margin:0 0 28px;letter-spacing:-.02em}
@@ -106,12 +106,12 @@
 <div class="lb" id="lb"><span>fechar ✕</span><img id="lbi" alt=""></div>
 <script>
 // Ajustes da caneta, em pixels CSS; frequência de falhas por pequeno trecho.
-const LARGURA_MIN = 1.2;
-const LARGURA_MAX = 2.8;
+const LARGURA_MIN = 3.4;
+const LARGURA_MAX = 6.8;
 const AMPLITUDE_DESVIO = 7;
 const INERCIA = 0.10;
 const FREQUENCIA_FALHAS = 0.004;
-const TAMANHO_ACUMULO = 3.3;
+const TAMANHO_ACUMULO = 6;
 const PONTO_LEITURA = 0.62;
 const SEMENTE = 2403;
 const FIOS_QUANTIDADE = 5;
@@ -167,7 +167,7 @@ const ALTURA_LEQUE = 150;
       const falha = aleatorio(id + 1401) < FREQUENCIA_FALHAS && parada < .2;
       const progresso = fio < 0 ? 0 : (yy - inicio)/(final - inicio);
       pontos.push({y:yy, x, curva, largura:fio < 0 ? largura : largura*.48*Math.pow(1-progresso, .7),
-        alfa:(.67 + .1*ruido(yy / 17, 701))*(fio < 0 ? 1 : Math.pow(1-progresso, 1.1)), falha,
+        alfa:(.86 + .08*ruido(yy / 17, 701))*(fio < 0 ? 1 : Math.pow(1-progresso, 1.1)), falha,
         textura:aleatorio(id + 1901)});
     }
     return pontos;
@@ -227,7 +227,7 @@ const ALTURA_LEQUE = 150;
       const fracao = limitar((ponta-marca.y)/8, 0, 1), x = xEm(marca.y) + MARGEM;
       ctx.fillStyle = '#1C1A18';
       ctx.strokeStyle = '#1C1A18';
-      ctx.lineWidth = 1.2;
+      ctx.lineWidth = 2.4;
       ctx.globalAlpha = .91;
       ctx.beginPath();
       // Uma única volta irregular, completada e preenchida na chegada da caneta.
@@ -256,7 +256,7 @@ const ALTURA_LEQUE = 150;
       contexto.globalAlpha = umidade*.19;
       pontas.forEach(x => {
         contexto.beginPath();
-        contexto.arc(x+MARGEM, ponta, ponta < fim ? 1.65 : .6, 0, Math.PI*2);
+        contexto.arc(x+MARGEM, ponta, ponta < fim ? 3.6 : 1.2, 0, Math.PI*2);
         contexto.fill();
       });
       contexto.globalAlpha = 1;
