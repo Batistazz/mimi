@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Mimi</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;1,9..144,300&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{--fundo:#fbf5ee;--tinta:#2d2420;--suave:#8a7468;--acento:#c9705a;--linha:#ead9cb}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--fundo);color:var(--tinta);font-family:Inter,system-ui,sans-serif;
+       display:flex;align-items:center;justify-content:center;padding:48px 20px;min-height:100vh;
+       background-image:radial-gradient(circle at 20% 10%,#f6e3d6 0,transparent 45%),radial-gradient(circle at 85% 90%,#f3dfe0 0,transparent 40%)}
+  main{max-width:520px;width:100%;text-align:center}
+  .tag{font-size:12px;letter-spacing:.28em;text-transform:uppercase;color:var(--suave)}
+  h1{font-family:Fraunces,Georgia,serif;font-weight:300;font-size:clamp(84px,24vw,140px);line-height:1;margin:18px 0 8px;letter-spacing:-.02em}
+  h1 em{color:var(--acento);font-style:italic}
+  .sub{font-family:Fraunces,Georgia,serif;font-style:italic;font-weight:300;font-size:20px;color:var(--suave)}
+  hr{border:0;height:1px;background:var(--linha);margin:36px auto;width:64px}
+  p.txt{font-size:17px;line-height:1.7;max-width:420px;margin:0 auto}
+  .breve{margin-top:40px;display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+  .breve div{border:1px dashed var(--linha);border-radius:14px;padding:18px 6px;font-size:13px;color:var(--suave)}
+  .breve b{display:block;font-family:Fraunces,Georgia,serif;font-weight:500;font-size:18px;color:var(--tinta);margin-bottom:4px}
+  .ass{margin-top:44px;font-family:Fraunces,Georgia,serif;font-style:italic;font-size:19px}
+  .ass small{display:block;font-family:Inter,sans-serif;font-style:normal;font-size:12px;color:var(--suave);margin-top:6px;letter-spacing:.04em}
+  form{margin-top:34px;display:flex;flex-direction:column;gap:12px;align-items:center}
+  input{font:inherit;font-size:18px;text-align:center;padding:14px 18px;width:min(280px,100%);border:1px solid var(--linha);border-radius:999px;background:#fff;color:var(--tinta);outline:none}
+  input:focus{border-color:var(--acento)}
+  button{font:inherit;font-weight:500;padding:12px 34px;border:0;border-radius:999px;background:var(--acento);color:#fff;cursor:pointer}
+  .erro{min-height:20px;font-size:14px;color:var(--acento)}
+</style>
+</head>
+<body>
+<main id="m">
+  <div class="tag">Formatura · Terceirão 2026</div>
+  <h1>Mi<em>mi</em></h1>
+  <div class="sub">esse cantinho é seu</div>
+  <form id="f">
+    <input id="s" type="password" placeholder="senha" autocomplete="current-password" autofocus>
+    <button>abrir</button>
+    <div class="erro" id="e"></div>
+  </form>
+</main>
+<script>
+const D = {"s": "jtgM5Lk7R8BFoD0JZp+pkA==", "i": "XUFk1CcKJv5MqyPu", "c": "HpOyWCm5hZ6z94698NPvfklMKRRhV7zEZVSaYsI3M2+m4FK4kFyELq87GUV7xG+WQkrnonOUVgu4CwqeTmJ8hbc9tfeDpfufhWgrvyB1344Y2/1pOnjeH3VyjtsQyDN++Rl9eXHaG+/0ArpHKyWdv01YIZbCKOeT9JGCiypjCGuREMybCbjDU2zcjLBJmA4KrTqysm8vtT/MQNaQQaMiuet8dX10xNM5zGtLhqD/bXuliUf9ixAotOvMsOP0pGBiLkbax3N8Wti9hOrgaR6Ph0EW7Qjq6KAp8k6hWT3HBlhLybe4Zem3tGFH2ja2J5YR059JqvRdjaEIaDqbrjJwVk/fQ7C/s/dzqYIbXeYNqCx+8xkOGRjIIDmxU80R+ujwvrk1mxsgMK0Z30egtwJ7Nj+UkHVN+nEcJyu/B7H9E8IF05VxMSeUNXIlLyaF7ld1kPNmq+P8uI65Z+WUlylSGOV7iemLWrccaj95hCavG4Za1hMcibWnDXNXL3qyLMHYSyrAM7kYASFr2wS2BUDfWG/DfxFui+KWQGOAeucU2KqoZwc5uEDZOeYlutLXXx4Gts3tYX8byzwZhkqq+Id4180oMUEE1o2BWDGreZEOtTHtatQwLTfmM31bkua5ktG74qAW8p/7Qu0gSJrMc9gDDvWXRQjPWg==", "n": 250000};
+const u = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
+async function abrir(senha){
+  const k0 = await crypto.subtle.importKey("raw", new TextEncoder().encode(senha), "PBKDF2", false, ["deriveKey"]);
+  const k = await crypto.subtle.deriveKey({name:"PBKDF2", salt:u(D.s), iterations:D.n, hash:"SHA-256"}, k0, {name:"AES-GCM", length:256}, false, ["decrypt"]);
+  const p = await crypto.subtle.decrypt({name:"AES-GCM", iv:u(D.i)}, k, u(D.c));
+  document.getElementById("m").innerHTML = new TextDecoder().decode(p);
+}
+document.getElementById("f").addEventListener("submit", async ev => {
+  ev.preventDefault();
+  const s = document.getElementById("s").value, e = document.getElementById("e");
+  e.textContent = "abrindo…";
+  try { await abrir(s); try { localStorage.setItem("mimi", s); } catch(_){} }
+  catch(_) { e.textContent = "senha errada, tenta de novo"; }
+});
+(async () => { let s = null; try { s = localStorage.getItem("mimi"); } catch(_){}
+  if (s) { try { await abrir(s); } catch(_){ try { localStorage.removeItem("mimi"); } catch(__){} } } })();
+</script>
+</body>
+</html>
